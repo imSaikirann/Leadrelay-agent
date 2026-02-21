@@ -5,7 +5,7 @@ import { CheckCircle2, Zap, Mail, Calendar } from "lucide-react"
 export default function LandingPage() {
   return (
     <main className="min-h-screen bg-white text-neutral-900">
-      {/* NAV */}
+      {/* NAVs */}
       <header className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
         <div className="text-xl font-semibold">AgentRelay</div>
         <div className="flex items-center gap-3">
