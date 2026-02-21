@@ -1,0 +1,14 @@
+<form id="contact-form">
+  <input name="name" placeholder="Name" />
+  <input name="email" placeholder="Email" />
+  <textarea name="message"></textarea>
+  <button type="submit">Send</button>
+</form>
+
+<script src="./dist/agent.js"></script>
+<script>
+  window.AgentRelay.init({
+    formId: "contact-form",
+    apiUrl: "http://localhost:4000/api/lead"
+  })
+</script>
