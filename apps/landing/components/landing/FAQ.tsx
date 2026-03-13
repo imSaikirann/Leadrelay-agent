@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const faqs = [
   {
@@ -23,53 +23,73 @@ const faqs = [
 
 export default function FAQ() {
   const [open, setOpen] = useState<number | null>(null);
+  const bodyRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   return (
     <section className="px-6 py-24 border-t border-[#E8E2D9]">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
+
         <p className="font-mono text-xs text-[#C4B9A8] uppercase tracking-widest mb-4">
           FAQ
         </p>
         <h2
-          className="text-[clamp(1.8rem,4vw,3rem)] text-[#1A1714] leading-tight mb-12"
+          className="text-[clamp(1.8rem,4vw,2.8rem)] text-[#1A1714] leading-tight mb-10"
           style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
         >
-          Questions you probably have.
+          Questions you<br />probably have.
         </h2>
 
-        <div className="flex flex-col divide-y divide-[#E8E2D9]">
-          {faqs.map((faq, i) => (
-            <div key={i} className="py-5">
-              <button
-                onClick={() => setOpen(open === i ? null : i)}
-                className="w-full flex items-start justify-between gap-4 text-left group"
-              >
-                <span className="text-sm font-medium text-[#1A1714] group-hover:text-[#D4622A] transition-colors duration-200">
-                  {faq.q}
-                </span>
-                <span
-                  className="text-[#C4B9A8] font-mono text-lg shrink-0 transition-transform duration-200"
+        <div className="divide-y divide-[#E8E2D9]">
+          {faqs.map((faq, i) => {
+            const isOpen = open === i;
+            return (
+              <div key={i}>
+                <button
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  className="w-full flex items-start justify-between gap-4 py-5 text-left group"
+                >
+                  <span
+                    className="text-sm font-medium text-[#1A1714] leading-relaxed transition-colors duration-150"
+                    style={{ color: isOpen ? "#D4622A" : undefined }}
+                  >
+                    {faq.q}
+                  </span>
+
+                  {/* Icon circle */}
+                  <span
+                    className="shrink-0 w-6 h-6 rounded-full border flex items-center justify-center mt-0.5 transition-all duration-150"
+                    style={{
+                      background: isOpen ? "#D4622A" : "transparent",
+                      borderColor: isOpen ? "#D4622A" : "#C4B9A8",
+                      color: isOpen ? "white" : "#C4B9A8",
+                    }}
+                  >
+                    <svg
+                      width="10" height="10" viewBox="0 0 10 10" fill="none"
+                      style={{ transition: "transform 0.25s ease", transform: isOpen ? "rotate(45deg)" : "rotate(0deg)" }}
+                    >
+                      <line x1="5" y1="1" x2="5" y2="9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                      <line x1="1" y1="5" x2="9" y2="5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </span>
+                </button>
+
+                {/* Answer — smooth height transition */}
+                <div
+                  ref={(el) => { bodyRefs.current[i] = el; }}
+                  className="overflow-hidden transition-all duration-300 ease-in-out"
                   style={{
-                    transform: open === i ? "rotate(45deg)" : "rotate(0deg)",
+                    maxHeight: isOpen ? (bodyRefs.current[i]?.scrollHeight ?? 200) + "px" : "0px",
+                    opacity: isOpen ? 1 : 0,
                   }}
                 >
-                  +
-                </span>
-              </button>
-
-              <div
-                className="overflow-hidden transition-all duration-300 ease-in-out"
-                style={{
-                  maxHeight: open === i ? "200px" : "0px",
-                  opacity: open === i ? 1 : 0,
-                }}
-              >
-                <p className="text-sm text-[#9B8E7E] leading-relaxed pt-3 pr-8">
-                  {faq.a}
-                </p>
+                  <p className="text-sm text-[#9B8E7E] leading-relaxed pb-5 pr-10">
+                    {faq.a}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

@@ -3,13 +3,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAppStore } from "@/store/useAppStore";
-import { LayoutDashboard, Users, Code2, BarChart3, LogOut, X } from "lucide-react";
+import { LayoutDashboard, Users, Code2, BarChart3, LineChart, LogOut, X, Shield } from "lucide-react";
 
 const navItems = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
   { label: "Leads", href: "/dashboard/leads", icon: BarChart3 },
+  { label: "Analytics", href: "/dashboard/analytics", icon: LineChart },
   { label: "Team", href: "/dashboard/team", icon: Users },
   { label: "Form", href: "/dashboard/form", icon: Code2 },
+  { label: "Admin", href: "/dashboard/admin", icon: Shield },
+  { label: "Admin", href: "/admin", icon: Code2 },
+
 ];
 
 export default function Sidebar({ onClose }: { onClose?: () => void }) {

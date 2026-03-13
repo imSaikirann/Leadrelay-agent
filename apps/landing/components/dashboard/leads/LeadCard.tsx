@@ -1,4 +1,5 @@
 import { Lead } from "@/lib/industry-data";
+import Link from "next/link";
 
 const scoreConfig = {
   Hot: {
@@ -19,6 +20,8 @@ export default function LeadCard({ lead }: { lead: Lead }) {
   const config = scoreConfig[lead.score];
 
   return (
+
+     <Link href={`/dashboard/leads/${lead.id}`}>
     <div className="bg-white border border-[#E8E2D9] rounded-2xl p-5 hover:border-[#C4B9A8] transition-colors duration-200">
       <div className="flex items-start justify-between gap-4 mb-3">
         <div>
@@ -63,5 +66,6 @@ export default function LeadCard({ lead }: { lead: Lead }) {
         </p>
       </div>
     </div>
+    </Link>
   );
 }

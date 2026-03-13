@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Sidebar from "@/components/dashboard/Sidebar";
 import { Menu, X } from "lucide-react";
+import Header from "@/components/dashboard/Header";
 
 export default function DashboardLayout({
   children,
@@ -32,24 +33,29 @@ export default function DashboardLayout({
       </div>
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile topbar */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-[#E8E2D9] lg:hidden">
-          <p className="font-mono text-sm font-medium text-[#1A1714]">
-            lead<span className="text-[#D4622A]">IQ</span>
-          </p>
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="text-[#9B8E7E] hover:text-[#1A1714] transition-colors"
-          >
-            <Menu className="w-5 h-5" />
-          </button>
-        </div>
+    <div className="flex-1 flex flex-col min-w-0">
+  {/* Mobile topbar */}
+  <div className="flex items-center justify-between px-4 py-4 border-b border-[#E8E2D9] lg:hidden">
+    <p className="font-mono text-sm font-medium text-[#1A1714]">
+      lead<span className="text-[#D4622A]">IQ</span>
+    </p>
+    <button
+      onClick={() => setSidebarOpen(true)}
+      className="text-[#9B8E7E] hover:text-[#1A1714] transition-colors"
+    >
+      <Menu className="w-5 h-5" />
+    </button>
+  </div>
 
-        <main className="flex-1 overflow-auto">
-          {children}
-        </main>
-      </div>
+  {/* Desktop header */}
+  <div className="hidden lg:block">
+    <Header />
+  </div>
+
+  <main className="flex-1 overflow-auto">
+    {children}
+  </main>
+</div>
 
     </div>
   );
