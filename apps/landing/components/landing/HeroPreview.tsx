@@ -14,8 +14,8 @@ const leads = [
     avatar: "bg-red-100 text-red-700",
     badge: "bg-red-50 text-red-700 border-red-200",
     dot: "bg-red-500 animate-pulse",
+    topBar: "bg-red-400",
     timeColor: "text-[#D4622A]",
-    bar: "bg-red-400",
   },
   {
     initials: "RM",
@@ -28,8 +28,8 @@ const leads = [
     avatar: "bg-amber-100 text-amber-700",
     badge: "bg-amber-50 text-amber-700 border-amber-200",
     dot: "bg-amber-400",
-    timeColor: "text-[#D4622A]",
-    bar: "bg-amber-300",
+    topBar: "bg-amber-300",
+    timeColor: "text-amber-500",
   },
   {
     initials: "AK",
@@ -41,15 +41,14 @@ const leads = [
     time: "5m ago",
     avatar: "bg-blue-100 text-blue-700",
     badge: "bg-blue-50 text-blue-700 border-blue-200",
-    dot: "bg-blue-400",
+    dot: "bg-blue-300",
+    topBar: "bg-blue-200",
     timeColor: "text-[#C4B9A8]",
-    bar: "bg-blue-300",
   },
 ];
 
 export default function HeroPreview() {
   const [visible, setVisible] = useState<boolean[]>([false, false, false]);
-  const [barWidth, setBarWidth] = useState<number[]>([0, 0, 0]);
 
   useEffect(() => {
     leads.forEach((_, i) => {
@@ -59,125 +58,104 @@ export default function HeroPreview() {
           next[i] = true;
           return next;
         });
-        setTimeout(() => {
-          setBarWidth((prev) => {
-            const next = [...prev];
-            next[i] = i === 0 ? 85 : i === 1 ? 52 : 20;
-            return next;
-          });
-        }, 300);
-      }, 400 + i * 350);
+      }, 200 + i * 250);
     });
   }, []);
 
   return (
     <div className="relative">
 
-      {/* Card stack */}
-      <div className="absolute inset-x-4 top-3 h-full bg-[#E8E2D9] rounded-2xl -z-10" />
-      <div className="absolute inset-x-2 top-1.5 h-full bg-[#F0EDE6] rounded-2xl -z-10" />
+      {/* Card stack depth */}
+      <div className="absolute inset-x-3 top-2 h-full bg-[#EDE9E2] rounded-2xl -z-10" />
 
       {/* Main card */}
-      <div className="bg-white border border-[#E8E2D9] rounded-2xl overflow-hidden shadow-sm">
+      <div className="bg-white border border-[#E8E2D9] rounded-2xl overflow-hidden">
 
         {/* Topbar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0EDE6] bg-[#FAF9F6]">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0EDE6] bg-[#FAFAF8]">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-medium text-[#1A1714]">
+            <span className="font-mono text-xs font-semibold text-[#1A1714]">
               inb<span className="text-[#D4622A]">oq</span>
             </span>
             <span className="font-mono text-[10px] text-[#C4B9A8]">/ leads</span>
           </div>
-          <span className="flex items-center gap-1.5 font-mono text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-2 py-0.5">
+          <span className="flex items-center gap-1.5 font-mono text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-0.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            live
+            scoring live
           </span>
         </div>
 
         {/* Lead rows */}
-        <div className="divide-y divide-[#F0EDE6]">
+        <div className="divide-y divide-[#F7F5F2]">
           {leads.map((lead, i) => (
             <div
               key={lead.name}
-              className="px-4 py-3.5 transition-all duration-500"
+              className="relative transition-all duration-500 ease-out"
               style={{
                 opacity: visible[i] ? 1 : 0,
-                transform: visible[i] ? "translateY(0)" : "translateY(10px)",
+                transform: visible[i] ? "translateX(0)" : "translateX(-8px)",
               }}
             >
-              {/* Header row */}
-              <div className="flex items-start justify-between mb-2">
-                <div className="flex items-center gap-2.5">
-                  <div
-                    className={"w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-semibold shrink-0 " + lead.avatar}
-                  >
-                    {lead.initials}
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-[#1A1714]">{lead.name}</p>
-                    <p className="text-[10px] text-[#C4B9A8] font-mono">{lead.course}</p>
-                  </div>
-                </div>
-                <span
-                  className={"inline-flex items-center gap-1 text-[10px] font-medium border rounded-full px-2 py-0.5 shrink-0 " + lead.badge}
-                >
-                  <span className={"w-1.5 h-1.5 rounded-full " + lead.dot} />
-                  {lead.score}
-                </span>
-              </div>
+              {/* Left score accent */}
+              <div className={"absolute left-0 top-0 bottom-0 w-[3px] " + lead.topBar} />
 
-              {/* Quote */}
-              <div className="bg-[#F7F5F2] rounded-lg px-3 py-2 mb-2.5">
-                <p className="text-[10px] text-[#9B8E7E] italic leading-relaxed">
+              <div className="px-4 pl-5 py-3">
+                {/* Name + badge */}
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-2">
+                    <div className={"w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0 " + lead.avatar}>
+                      {lead.initials}
+                    </div>
+                    <div>
+                      <p className="text-xs font-medium text-[#1A1714] leading-tight">{lead.name}</p>
+                      <p className="text-[10px] text-[#C4B9A8] font-mono">{lead.course}</p>
+                    </div>
+                  </div>
+                  <span className={"inline-flex items-center gap-1 text-[10px] font-medium border rounded-full px-2 py-0.5 shrink-0 " + lead.badge}>
+                    <span className={"w-1.5 h-1.5 rounded-full " + lead.dot} />
+                    {lead.score}
+                  </span>
+                </div>
+
+                {/* Quote */}
+                <p className="text-[10px] text-[#9B8E7E] italic leading-relaxed mb-2 pl-8">
                   "{lead.quote}"
                 </p>
-              </div>
 
-              {/* Intent bar */}
-              <div className="mb-2.5">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[9px] font-mono text-[#C4B9A8] uppercase tracking-widest">
-                    intent
-                  </span>
-                  <span className="text-[9px] font-mono text-[#C4B9A8]">
-                    {barWidth[i]}%
+                {/* Footer */}
+                <div className="flex items-center justify-between pl-8">
+                  {lead.routedTo ? (
+                    <p className="text-[10px] text-[#C4B9A8]">
+                      Routed to{" "}
+                      <span className="text-[#1A1714] font-medium">{lead.routedTo}</span>
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-[#C4B9A8]">
+                      {lead.score === "Warm" ? "Awaiting follow-up" : "Nurture sequence"}
+                    </p>
+                  )}
+                  <span className={"text-[10px] font-mono " + lead.timeColor}>
+                    {lead.time}
                   </span>
                 </div>
-                <div className="h-1 bg-[#F0EDE6] rounded-full overflow-hidden">
-                  <div
-                    className={"h-full rounded-full transition-all duration-700 ease-out " + lead.bar}
-                    style={{ width: barWidth[i] + "%" }}
-                  />
-                </div>
-              </div>
-
-              {/* Footer */}
-              <div className="flex items-center justify-between">
-                {lead.routedTo ? (
-                  <p className="text-[10px] text-[#C4B9A8]">
-                    Routed to{" "}
-                    <span className="text-[#1A1714] font-medium">{lead.routedTo}</span>
-                  </p>
-                ) : (
-                  <p className="text-[10px] text-[#C4B9A8]">
-                    {lead.score === "Warm" ? "In CRM — awaiting follow-up" : "Nurture sequence"}
-                  </p>
-                )}
-                <span className={"text-[10px] font-mono " + lead.timeColor}>
-                  {lead.time}
-                </span>
               </div>
             </div>
           ))}
         </div>
 
         {/* Bottom bar */}
-        <div className="px-4 py-3 border-t border-[#F0EDE6] bg-[#FAF9F6] flex items-center justify-between">
-          <p className="text-[10px] font-mono text-[#C4B9A8]">3 leads today</p>
+        <div className="px-4 py-2.5 border-t border-[#F0EDE6] bg-[#FAFAF8] flex items-center justify-between">
+          <p className="text-[10px] font-mono text-[#C4B9A8]">3 leads scored today</p>
           <div className="flex items-center gap-3">
-            <span className="text-[10px] font-mono text-red-500">1 hot</span>
-            <span className="text-[10px] font-mono text-amber-500">1 warm</span>
-            <span className="text-[10px] font-mono text-blue-400">1 cold</span>
+            <span className="flex items-center gap-1 text-[10px] font-mono text-red-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-400" />1 hot
+            </span>
+            <span className="flex items-center gap-1 text-[10px] font-mono text-amber-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-300" />1 warm
+            </span>
+            <span className="flex items-center gap-1 text-[10px] font-mono text-blue-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-300" />1 cold
+            </span>
           </div>
         </div>
 

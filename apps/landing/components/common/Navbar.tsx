@@ -32,18 +32,7 @@ export default function Navbar() {
 
       {/* Right side */}
       <div className="flex items-center gap-6">
-        <a
-          href="#how-it-works"
-          className="hidden sm:block text-xs font-mono text-[#C4B9A8] hover:text-[#1A1714] transition-colors duration-150"
-        >
-          how it works
-        </a>
-        <a
-          href="#features"
-          className="hidden sm:block text-xs font-mono text-[#C4B9A8] hover:text-[#1A1714] transition-colors duration-150"
-        >
-          features
-        </a>
+       
         <CustomButton
           onClick={scrollToWaitlist}
          
