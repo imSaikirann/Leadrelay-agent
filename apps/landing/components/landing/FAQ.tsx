@@ -32,12 +32,16 @@ export default function FAQ() {
         <p className="font-mono text-xs text-[#C4B9A8] uppercase tracking-widest mb-4">
           FAQ
         </p>
-        <h2
-          className="text-[clamp(1.8rem,4vw,2.8rem)] text-[#1A1714] leading-tight mb-10"
-          style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
-        >
-          Questions you<br />probably have.
-        </h2>
+   <h2
+  className="text-[clamp(1.8rem,4vw,2.8rem)] text-[#1A1714] leading-tight mb-10"
+  style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
+>
+  Questions you probably{" "}
+  <span className="relative inline-block">
+    have.
+    <span className="absolute left-0 -bottom-1 w-full h-[3px] bg-[#D4622A] rounded-full" />
+  </span>
+</h2>
 
         <div className="divide-y divide-[#E8E2D9]">
           {faqs.map((faq, i) => {

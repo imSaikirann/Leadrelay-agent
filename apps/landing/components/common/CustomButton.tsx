@@ -20,9 +20,8 @@ export function CustomButton({
       className={`relative ${className}`}
       style={{ perspective: "600px" }}
     >
-      {/* Shadow depth */}
       <div
-        className="absolute inset-0 rounded-xl bg-black translate-y-[4px] translate-x-[1px]"
+        className="absolute inset-0 rounded-lg bg-black translate-y-[3px] translate-x-[1px]"
         style={{ filter: "blur(1px)" }}
       />
 
@@ -34,15 +33,15 @@ export function CustomButton({
         onMouseLeave={() => setPressed(false)}
         onTouchStart={() => setPressed(true)}
         onTouchEnd={() => setPressed(false)}
-        className="relative z-10 group overflow-hidden rounded-xl border border-black w-full h-[52px] px-7 font-mono text-sm font-medium tracking-wide text-white"
+        className="relative z-10 group overflow-hidden rounded-lg border border-black w-full h-[38px] px-5 font-mono text-xs font-medium tracking-wide text-white"
         style={{
           background: "linear-gradient(145deg, #2a2724, #0f0d0c)",
           transform: pressed
-            ? "translateY(3px) translateX(0.5px) rotateX(4deg)"
+            ? "translateY(2px) translateX(0.5px) rotateX(4deg)"
             : "translateY(0px) rotateX(0deg)",
           boxShadow: pressed
             ? "0 1px 0 #000, inset 0 1px 3px rgba(0,0,0,0.5)"
-            : "0 4px 0 #000, 0 6px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
+            : "0 3px 0 #000, 0 5px 10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.08)",
           transition: "transform 0.08s ease, box-shadow 0.08s ease",
           whiteSpace: "nowrap",
         }}

@@ -6,7 +6,7 @@ export default function SocialProof() {
           
           {/* Counter */}
           <div className="text-center sm:text-left">
-            <p className="font-mono text-5xl font-medium text-[#1A1714]">47+</p>
+            <p className="font-mono text-5xl font-medium text-[#1A1714]">20+</p>
             <p className="text-sm text-[#9B8E7E] mt-1">sales teams on the waitlist</p>
           </div>
 
