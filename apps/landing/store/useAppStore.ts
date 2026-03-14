@@ -63,6 +63,6 @@ export const useAppStore = create<AppStore>()(
         })),
       reset: () => set({ company: null, members: [] }),
     }),
-    { name: "leadiq-store" }
+    { name: "inboq-store" }
   )
 );

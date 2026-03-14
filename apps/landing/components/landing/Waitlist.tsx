@@ -11,32 +11,34 @@ export default function Waitlist() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name || !email) return;
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!name || !email) return;
 
-    setLoading(true);
-    setError("");
+  setLoading(true);
+  setError("");
 
-    try {
-      const res = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email }),
-      });
+  try {
+    const res = await fetch("/api/waitlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email }),
+    });
 
-      if (res.ok) {
-        setSubmitted(true);
-      } else {
-        const data = await res.json();
-        setError(data.error || "Something went wrong");
-      }
-    } catch {
-      setError("Something went wrong. Try again.");
-    } finally {
-      setLoading(false);
+    if (res.status === 409) {
+      setError("You're already on the list! We'll be in touch.");
+    } else if (res.ok) {
+      setSubmitted(true);
+    } else {
+      const data = await res.json();
+      setError(data.error || "Something went wrong");
     }
-  };
+  } catch {
+    setError("Something went wrong. Try again.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <section id="waitlist" className="px-6 py-32 border-t border-[#E8E2D9]">
@@ -55,7 +57,7 @@ export default function Waitlist() {
           >
             Be the first to know
             <br />
-            when <em className="text-[#D4622A]">LeadIQ</em> launches.
+            when <em className="text-[#D4622A]">Inboq</em> launches.
           </h2>
 
           <p className="text-[#9B8E7E] text-base leading-relaxed mb-10 max-w-lg mx-auto">
@@ -102,7 +104,7 @@ export default function Waitlist() {
                 You're in, {name}.
               </p>
               <p className="text-sm text-[#9B8E7E]">
-                We'll email you the moment LeadIQ is ready. You're early — that means you'll shape what this becomes.
+                We'll email you the moment Inboq is ready. You're early , that means you'll shape what this becomes.
               </p>
             </div>
           )}

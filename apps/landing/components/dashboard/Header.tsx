@@ -17,7 +17,7 @@ export default function Header() {
   const pathname = usePathname();
   const company = useAppStore((s) => s.company);
 
-  const page = pageTitles[pathname] ?? { title: "LeadIQ", sub: "" };
+  const page = pageTitles[pathname] ?? { title: "Inboq", sub: "" };
 
   const initials = company?.name
     ? company.name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()

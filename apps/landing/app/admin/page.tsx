@@ -26,7 +26,7 @@ export default function AdminOverviewPage() {
           Admin Overview
         </h1>
         <p className="text-sm text-[#555] mt-1">
-          Everything happening across LeadIQ.
+          Everything happening across Inboq.
         </p>
       </div>
 

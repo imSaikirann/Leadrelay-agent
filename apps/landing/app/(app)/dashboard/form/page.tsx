@@ -39,8 +39,8 @@ export default function FormPage() {
   const [copiedLink, setCopiedLink] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const formLink = "https://leadiq.io/f/" + (company?.name?.toLowerCase().replace(/\s+/g, "-") ?? "your-company");
-  const snippet = '<script src="https://leadiq.io/embed.js" data-company="' + (company?.name ?? "your-company") + '" async></script>';
+  const formLink = "https://inboq.io/f/" + (company?.name?.toLowerCase().replace(/\s+/g, "-") ?? "your-company");
+  const snippet = '<script src="https://inboq.io/embed.js" data-company="' + (company?.name ?? "your-company") + '" async></script>';
 
   const handleCopy = (type: "snippet" | "link") => {
     if (type === "snippet") {

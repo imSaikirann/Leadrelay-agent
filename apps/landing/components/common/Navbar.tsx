@@ -5,7 +5,7 @@ export default function Navbar() {
     <nav className="absolute top-0 left-0 right-0 flex items-center justify-between px-8 py-6">
       
       <span className="font-mono text-sm font-medium text-[#1A1714] tracking-tight">
-        lead<span className="text-[#D4622A]">IQ</span>
+        Inbo<span className="text-[#D4622A]">Q</span>
       </span>
 
       <a
