@@ -9,8 +9,8 @@ const TIMEOUT_MS = 15000
 
 async function callModel(lead: any) {
   const res = await llm.chat.completions.create({
-    model: "llama-3.1-8b-instant",
-    temperature: 0.2,
+    model: "llama-3.3-70b-versatile",
+    temperature: 0.1,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: JSON.stringify(lead) },

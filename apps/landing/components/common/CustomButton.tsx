@@ -5,6 +5,7 @@ interface CrazyButtonProps {
   onClick?: () => void;
   type?: "button" | "submit" | "reset";
   className?: string;
+  disabled?:boolean;
 }
 
 export function CustomButton({
@@ -12,6 +13,7 @@ export function CustomButton({
   onClick,
   type = "button",
   className = "",
+  disabled=false
 }: CrazyButtonProps) {
   const [pressed, setPressed] = useState(false);
 
@@ -28,6 +30,7 @@ export function CustomButton({
       <button
         type={type}
         onClick={onClick}
+        disabled={disabled}
         onMouseDown={() => setPressed(true)}
         onMouseUp={() => setPressed(false)}
         onMouseLeave={() => setPressed(false)}
