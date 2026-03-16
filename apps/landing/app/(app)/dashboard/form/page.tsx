@@ -25,7 +25,9 @@ interface LeadForm {
 const defaultFields: FormField[] = [
   { id: "1", label: "Full name", type: "text", placeholder: "Enter your full name", required: true },
   { id: "2", label: "Email address", type: "email", placeholder: "Enter your email", required: true },
-  { id: "3", label: "Phone number", type: "phone", placeholder: "Enter your phone number", required: false },
+  { id: "3", label: "Phone number", type: "phone", placeholder: "Enter your phone number", required: true },
+  { id: "4", label: "Message", type: "textarea", placeholder: "Enter context", required: true },
+
 ];
 
 type Tab = "builder" | "preview" | "share";
@@ -64,6 +66,7 @@ export default function FormPage() {
     fetch("/api/onboarding")
       .then((r) => r.json())
       .then((data) => {
+  
         if (data?.name) setCompanySlug(data.name.toLowerCase().replace(/\s+/g, "-"));
       })
       .catch(() => {});
