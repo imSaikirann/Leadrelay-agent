@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { compose } from "@/lib/compose";
+import { withRateLimit } from "@/lib/middlewares/rate-limit.middleware";
+
+const withHeavy = compose(withRateLimit("heavy"));
 
 export async function GET(
   _: NextRequest,

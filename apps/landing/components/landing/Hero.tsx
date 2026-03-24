@@ -40,8 +40,8 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-wrap items-center gap-4 mb-8">
-              <CustomButton onClick={scrollToWaitlist}>
-                Join the waitlist
+              <CustomButton href="/login">
+                Join Now
               </CustomButton>
             
             </div>

@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Input } from "../ui/input";
 
-interface CrazyInputProps {
+interface CustomInputProps {
   type?: string;
   placeholder?: string;
   value: string;
@@ -17,57 +17,34 @@ export function CustomInput({
   onChange,
   required,
   className = "",
-}: CrazyInputProps) {
+}: CustomInputProps) {
   const [focused, setFocused] = useState(false);
-  const [hasValue, setHasValue] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setHasValue(e.target.value.length > 0);
-    onChange(e);
-  };
+  const isActive = focused || value.length > 0;
 
   return (
     <div
       className={`relative w-full cursor-text ${className}`}
       onClick={() => inputRef.current?.focus()}
     >
-      {/* Gradient border */}
+      {/* Border */}
       <div
-        className="absolute -inset-[1.5px] rounded-xl transition-all duration-300"
-        style={{
-          background: focused
-            ? "linear-gradient(135deg, #D4622A, #F5C27A, #D4622A)"
-            : "linear-gradient(135deg, #E8E2D9, #E8E2D9)",
-          backgroundSize: "200% 200%",
-          animation: focused ? "borderShift 2s ease infinite" : "none",
-          opacity: focused ? 1 : 0.6,
-        }}
+        className={`absolute -inset-[1.5px] rounded-xl transition-all duration-300 ${
+          focused
+            ? "bg-gradient-to-r from-[#D4622A] via-[#F5C27A] to-[#D4622A] opacity-100"
+            : "bg-[#E8E2D9] opacity-60"
+        }`}
       />
 
-      <div className="relative rounded-xl bg-[#FAF9F6] overflow-hidden h-[52px]">
-        {/* Scan line */}
-        {focused && (
-          <div
-            className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-[#D4622A]/40 to-transparent pointer-events-none z-20"
-            style={{ animation: "scanLine 1.5s ease-in-out infinite" }}
-          />
-        )}
-
-        {/* Floating label */}
+      <div className="relative h-[52px] rounded-xl bg-[#FAF9F6] overflow-hidden">
+        {/* Label */}
         <label
-          className="absolute left-4 transition-all duration-200 pointer-events-none font-mono select-none z-10"
-          style={{
-            top: focused || hasValue ? "6px" : "50%",
-            transform:
-              focused || hasValue
-                ? "translateY(0) scale(0.75)"
-                : "translateY(-50%) scale(1)",
-            transformOrigin: "left center",
-            fontSize: "13px",
-            color: focused ? "#D4622A" : "#C4B9A8",
-            letterSpacing: focused ? "0.08em" : "0",
-          }}
+          className={`absolute left-4 font-mono text-[13px] transition-all duration-200 pointer-events-none ${
+            isActive
+              ? "top-[6px] scale-75 text-[#D4622A]"
+              : "top-1/2 -translate-y-1/2 text-[#C4B9A8]"
+          }`}
         >
           {placeholder}
         </label>
@@ -77,36 +54,23 @@ export function CustomInput({
           ref={inputRef}
           type={type}
           value={value}
-          onChange={handleChange}
+          onChange={onChange}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           required={required}
           placeholder=""
-          className="absolute inset-0 z-10 border-0 bg-transparent px-4 pb-2 pt-6 text-sm text-[#1A1714] placeholder:text-transparent shadow-none focus-visible:ring-0 focus-visible:ring-offset-0 font-mono h-full"
+          className="absolute inset-0 border-0 bg-transparent px-4 pt-6 pb-2 text-sm font-mono text-[#1A1714] shadow-none focus-visible:ring-0"
         />
 
         {/* Bottom bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E8E2D9] z-10">
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#E8E2D9]">
           <div
-            className="h-full bg-gradient-to-r from-[#D4622A] to-[#F5C27A] transition-all duration-300 ease-out"
-            style={{ width: focused ? "100%" : "0%" }}
+            className={`h-full bg-gradient-to-r from-[#D4622A] to-[#F5C27A] transition-all duration-300 ${
+              focused ? "w-full" : "w-0"
+            }`}
           />
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes borderShift {
-          0% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-          100% { background-position: 0% 50%; }
-        }
-        @keyframes scanLine {
-          0% { top: 0%; opacity: 0; }
-          20% { opacity: 1; }
-          80% { opacity: 1; }
-          100% { top: 100%; opacity: 0; }
-        }
-      `}</style>
     </div>
   );
 }

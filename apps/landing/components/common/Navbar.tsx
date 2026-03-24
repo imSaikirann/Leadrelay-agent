@@ -2,28 +2,23 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { CustomButton } from "./CustomButton";
-
+import { Building, LogOut, SettingsIcon } from "lucide-react";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: session } = useSession();
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const router = useRouter();
-const pathname = usePathname();
+  const pathname = usePathname() ?? "";
 
-if (pathname.startsWith("/f")) {
-  return null;
-}
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // Close dropdown on outside click
   useEffect(() => {
     const handleOutsideClick = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -34,14 +29,17 @@ if (pathname.startsWith("/f")) {
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
+  const hiddenRoutes = ["/f", "/login", "/rep", "/auth-redirect", "/onboarding"];
+  const shouldHide = hiddenRoutes.some((route) => route && pathname.startsWith(route));
+  if (shouldHide) return null;
+
   const scrollToWaitlist = () => {
     document.getElementById("waitlist")?.scrollIntoView({ behavior: "smooth" });
   };
 
   const menuItems = [
-    { label: "Company Profile", icon: "🏢", action: () => router.push("/dashboard/profile") },
-    { label: "Settings", icon: "⚙️", action: () => router.push("/dashboard/settings") },
-    { label: "Sign out", icon: "→", action: () => signOut({ callbackUrl: "/" }), danger: true },
+    { label: "Company Profile", icon: <Building className="size-5 opacity-60"/>, href: "/dashboard/profile" },
+    { label: "Settings", icon: <SettingsIcon className="size-5 opacity-60"/>, href: "/dashboard/settings" },
   ];
 
   return (
@@ -53,16 +51,13 @@ if (pathname.startsWith("/f")) {
         borderBottom: scrolled ? "1px solid #E8E2D9" : "1px solid transparent",
       }}
     >
-      {/* Logo */}
       <span className="font-mono text-sm font-medium text-[#1A1714] tracking-tight">
         inb<span className="text-[#D4622A]">oq</span>
       </span>
 
-      {/* Right side */}
       <div className="flex items-center gap-6">
         {session?.user ? (
           <div className="relative" ref={dropdownRef}>
-            {/* Avatar button — image only */}
             <button
               onClick={() => setDropdownOpen(!dropdownOpen)}
               className="focus:outline-none rounded-full ring-2 ring-transparent hover:ring-[#D4622A] transition-all duration-200"
@@ -80,52 +75,52 @@ if (pathname.startsWith("/f")) {
               )}
             </button>
 
-            {/* Dropdown */}
             {dropdownOpen && (
               <div className="absolute right-0 mt-3 w-52 rounded-2xl border border-[#E8E2D9] bg-white shadow-lg overflow-hidden">
-                {/* User info header */}
+                {/* User info */}
                 <div className="px-4 py-3 border-b border-[#E8E2D9] flex items-center gap-3">
                   {session.user.image ? (
-                    <img
-                      src={session.user.image}
-                      alt=""
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
+                    <img src={session.user.image} alt="" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-[#D4622A] flex items-center justify-center text-white text-xs">
                       {session.user.name?.[0]?.toUpperCase() ?? "U"}
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-[#1A1714] truncate">
-                      {session.user.name}
-                    </p>
-                    <p className="text-xs text-[#9B8E7E] truncate">
-                      {session.user.email}
-                    </p>
+                    <p className="text-xs font-medium text-[#1A1714] truncate">{session.user.name}</p>
+                    <p className="text-xs text-[#9B8E7E] truncate">{session.user.email}</p>
                   </div>
                 </div>
 
-                {/* Menu items */}
+                {/* Nav links */}
                 <div className="py-1">
                   {menuItems.map((item) => (
-                    <button
+                    <a
                       key={item.label}
-                      onClick={() => { item.action(); setDropdownOpen(false); }}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-[#FAF9F6]"
-                      style={{ color: item.danger ? "#ef4444" : "#1A1714" }}
+                      href={item.href}
+                      onClick={() => setDropdownOpen(false)}
+                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1A1714] transition-colors hover:bg-[#FAF9F6]"
                     >
                       <span className="text-base">{item.icon}</span>
                       <span className="font-mono">{item.label}</span>
-                    </button>
+                    </a>
                   ))}
+
+                  <button
+                    onClick={() => { setDropdownOpen(false); signOut({ callbackUrl: "/" }); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-[#FAF9F6]"
+                    style={{ color: "#ef4444" }}
+                  >
+                    <span className="text-base"><LogOut className="size-4"/></span>
+                    <span className="font-mono">Sign out</span>
+                  </button>
                 </div>
               </div>
             )}
           </div>
         ) : (
-          <CustomButton onClick={scrollToWaitlist}>
-            get early access
+          <CustomButton href="/login"  >
+            Get Started
           </CustomButton>
         )}
       </div>

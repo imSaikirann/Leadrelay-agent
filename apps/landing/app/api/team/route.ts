@@ -75,3 +75,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Email already exists in team" }, { status: 409 });
   }
 }
+
+
+

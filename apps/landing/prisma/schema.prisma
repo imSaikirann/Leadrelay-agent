@@ -17,8 +17,7 @@ model User {
   updatedAt     DateTime  @updatedAt
   accounts      Account[]
   sessions      Session[]
-
-  company       Company ?
+  company       Company?
 }
 
 model Account {
@@ -56,33 +55,84 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+model Plan {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  name         String   @unique
+  priceMonthly Int
+  trialDays    Int      @default(7)
+  maxLeads     Int?
+  maxMembers   Int?
+  features     Json     @default("[]")
+  isActive     Boolean  @default(true)
+  dodoPlanId   String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-model Company {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  userId    String   @db.ObjectId @unique
-  name      String
-  email     String
-  website   String?
-  industry  String
-  size      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  teamMembers TeamMember[]
-  leadForm    LeadForm[]
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
 }
 
+model Subscription {
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
+  companyId          String    @db.ObjectId @unique
+  planId             String    @db.ObjectId
+  trialStart         DateTime  @default(now())
+  trialEnd           DateTime
+  currentPeriodStart DateTime?
+  currentPeriodEnd   DateTime?
+  status             String    @default("trial")
+  dodoSubscriptionId String?
+  cancelledAt        DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  plan     Plan      @relation(fields: [planId], references: [id])
+  payments Payment[]
+}
+
+model Payment {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  subscriptionId   String    @db.ObjectId
+  amount           Int
+  currency         String    @default("INR")
+  status           String
+  gateway          String?
+  gatewayOrderId   String?
+  gatewayPaymentId String?
+  paidAt           DateTime?
+  createdAt        DateTime  @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+model Company {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId         String   @db.ObjectId @unique
+  name           String
+  email          String
+  website        String?
+  industry       String
+  size           String?
+  dodoCustomerId String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  teamMembers  TeamMember[]
+  leadForm     LeadForm[]
+  teams        Team[]
+  subscription Subscription?
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fields       BusinessField[]  
+}
 
 model TeamMember {
   id              String   @id @default(auto()) @map("_id") @db.ObjectId
   companyId       String   @db.ObjectId
   name            String
   email           String
-  password        String   // ← hashed password
-  role            String   @default("Sales Rep")
-  seniority       String   @default("junior") // ← junior | mid | senior
+  password        String
+  role            String   @default("sales_rep")
+  seniority       String   @default("junior")
   specialty       String?
   status          String   @default("active")
   leads           Int      @default(0)
@@ -92,19 +142,48 @@ model TeamMember {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company       Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  memberships   TeamMembership[]
+  ledTeams      Team[]           @relation("TeamLead")
+  assignedLeads FormSubmission[] @relation("AssignedMember")
 
   @@unique([companyId, email])
 }
 
+model Team {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  companyId   String      @db.ObjectId
+  name        String
+  description String?
+  color       String      @default("#D4622A")
+  teamLeadId  String?     @db.ObjectId
+  teamLead    TeamMember? @relation("TeamLead", fields: [teamLeadId], references: [id], onDelete: SetNull)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  memberships TeamMembership[]
 
+  @@unique([companyId, name])
+}
+
+model TeamMembership {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  teamId       String   @db.ObjectId
+  teamMemberId String   @db.ObjectId
+  joinedAt     DateTime @default(now())
+
+  team   Team       @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  member TeamMember @relation(fields: [teamMemberId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, teamMemberId])
+}
 
 model LeadForm {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  companyId String   @db.ObjectId        // ← remove @unique
-  name      String   @default("Untitled Form")  // ← form name
-  slug      String                        // ← unique per form e.g. "bootcamp-leads"
+  companyId String   @db.ObjectId
+  name      String   @default("Untitled Form")
+  slug      String
   fields    Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -112,18 +191,67 @@ model LeadForm {
   company     Company          @relation(fields: [companyId], references: [id], onDelete: Cascade)
   submissions FormSubmission[]
 
-  @@unique([companyId, slug])  // ← slug unique per company
+  @@unique([companyId, slug])
 }
 
 model FormSubmission {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  formId    String   @db.ObjectId
-  companyId String   @db.ObjectId
-  data      Json
-  rank      String?  // ← "hot" | "warm" | "cold"
-  rankReason String? // ← why it was ranked this way
-  rankedAt  DateTime?
-  createdAt DateTime @default(now())
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  formId     String?   @db.ObjectId
+  companyId  String    @db.ObjectId
+  data       Json
+  rank       String?
+  rankReason String?
+  rankedAt   DateTime?
+  hash       String?  @db.String  
+  assignedTo String?   @db.ObjectId
+  assignedAt DateTime?
+  calledAt   DateTime?
+  callNote   String?
+  status     String?   @default("new")
+  createdAt  DateTime  @default(now())
+    
+  form           LeadForm?   @relation(fields: [formId], references: [id], onDelete: Cascade)
+  assignedMember TeamMember? @relation("AssignedMember", fields: [assignedTo], references: [id], onDelete: SetNull)
 
-  form LeadForm @relation(fields: [formId], references: [id], onDelete: Cascade)
+  @@index([companyId, hash])
 }
+
+
+
+
+model BusinessField {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyId  String   @db.ObjectId
+  key        String  
+  label      String   
+  type       String   
+  options    Json?    
+  isRequired Boolean  @default(false)
+  isDeleted  Boolean  @default(false)
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+  @@index([companyId, isDeleted])
+}
+
+model FieldTemplate {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  category   String   
+  key        String
+  label      String
+  type       String
+  options    Json?
+  isRequired Boolean  @default(false)
+  order      Int      @default(0)
+
+  @@unique([category, key])
+  @@index([category])
+}
+
+
+
+

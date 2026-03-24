@@ -17,6 +17,7 @@ const scoreConfig = {
 };
 
 export default function LeadCard({ lead }: { lead: Lead }) {
+  console.log(lead)
   const config = scoreConfig[lead.score];
 
   return (
@@ -30,14 +31,14 @@ export default function LeadCard({ lead }: { lead: Lead }) {
             {lead.email} · {lead.interest}
           </p>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+        {/* <div className="flex items-center gap-2 shrink-0">
           <span
             className={`inline-flex items-center gap-1.5 border text-xs font-medium rounded-full px-2.5 py-1 ${config.badge}`}
           >
             <span className={`w-1.5 h-1.5 rounded-full ${config.dot} animate-pulse`} />
-            {lead.score}
+            {lead?.score}
           </span>
-        </div>
+        </div> */}
       </div>
 
       {/* Context */}

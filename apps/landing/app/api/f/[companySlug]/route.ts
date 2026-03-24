@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { inngest } from "@/lib/inngest";
 
+
 async function getForm(companySlug: string, formSlug?: string) {
   const companies = await prisma.company.findMany({
     include: { leadForm: true },
@@ -38,19 +39,19 @@ export async function POST(
 
   const data = await req.json();
 
-  console.log("💾 Saving submission...");
+
   const submission = await prisma.formSubmission.create({
     data: { formId: form.id, companyId: company.id, data },
   });
-  console.log("✅ Saved submission ID:", submission.id);
+ 
 
   try {
-    console.log("🚀 Sending inngest event...");
+ 
     const result = await inngest.send({
       name: "lead/submitted",
       data: { submissionId: submission.id, companyId: company.id },
     });
-    console.log("✅ Inngest sent:", JSON.stringify(result));
+
   } catch (err) {
     console.error("❌ Inngest send failed:", err);
   }

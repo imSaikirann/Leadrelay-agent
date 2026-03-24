@@ -1,11 +1,15 @@
-import { useState } from "react";
+"use client";
 
-interface CrazyButtonProps {
+import { useState } from "react";
+import Link from "next/link";
+
+interface CustomButtonProps {
   children: React.ReactNode;
   onClick?: () => void;
   type?: "button" | "submit" | "reset";
   className?: string;
-  disabled?:boolean;
+  disabled?: boolean;
+  href?: string; // ✅ NEW
 }
 
 export function CustomButton({
@@ -13,11 +17,12 @@ export function CustomButton({
   onClick,
   type = "button",
   className = "",
-  disabled=false
-}: CrazyButtonProps) {
+  disabled = false,
+  href,
+}: CustomButtonProps) {
   const [pressed, setPressed] = useState(false);
 
-  return (
+  const content = (
     <div
       className={`relative ${className}`}
       style={{ perspective: "600px" }}
@@ -57,4 +62,15 @@ export function CustomButton({
       </button>
     </div>
   );
+
+  // ✅ If link → wrap with Next Link
+  if (href) {
+    return (
+      <Link href={href} className="inline-block">
+        {content}
+      </Link>
+    );
+  }
+
+  return content;
 }

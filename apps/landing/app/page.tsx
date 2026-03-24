@@ -15,11 +15,11 @@ export default function LandingPage() {
     <main className="bg-[#FAF9F6] text-[#1A1714] antialiased">
      <Hero />
     
-      <SocialProof />      {/* ← numbers + quote */}
+      <SocialProof />    
       <HowItWorks />
       <Features />
-      <FAQ />              {/* ← before waitlist */}
-      <Waitlist/>
+      <FAQ />             
+      {/* <Waitlist/> */}
       <Footer />
     </main>
   );

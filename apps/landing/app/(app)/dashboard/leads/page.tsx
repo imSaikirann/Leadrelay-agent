@@ -19,5 +19,5 @@ export default async function LeadsPage() {
     orderBy: { createdAt: "desc" },
   });
 
-  return <LeadsClient submissions={submissions} />;
+  return <LeadsClient formId="" />;
 }
