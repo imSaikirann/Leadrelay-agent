@@ -17,11 +17,11 @@
         "INNGEST_EVENT_KEY",
         "INNGEST_SIGNING_KEY",
         "NODE_ENV ",
-        " DODO_PAYMENTS_API_KEY", 
-"DODO_PAYMENTS_WEBHOOK_SECRET", 
-"DODO_PAYMENTS_ENV",
- "UPSTASH_REDIS_REST_URL" ,
- "UPSTASH_REDIS_REST_TOKEN" 
+        "DODO_PAYMENTS_API_KEY",
+        "DODO_PAYMENTS_WEBHOOK_SECRET",
+        "DODO_PAYMENTS_ENV",
+        "UPSTASH_REDIS_REST_URL",
+        "UPSTASH_REDIS_REST_TOKEN"
       ],
       "outputs": [
         ".next/**",
@@ -33,5 +33,3 @@
     }
   }
 }
-
-
