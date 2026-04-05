@@ -26,14 +26,14 @@ export default function FAQ() {
   const bodyRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   return (
-    <section className="px-6 py-24 border-t border-[#E8E2D9]">
+    <section className="border-t border-[#E8E2D9] px-6 py-24 dark:border-white/10">
       <div className="max-w-4xl mx-auto">
 
-        <p className="font-mono text-xs text-[#C4B9A8] uppercase tracking-widest mb-4">
+        <p className="mb-4 font-mono text-xs uppercase tracking-widest text-[#C4B9A8] dark:text-[#8E8377]">
           FAQ
         </p>
    <h2
-  className="text-[clamp(1.8rem,4vw,2.8rem)] text-[#1A1714] leading-tight mb-10"
+  className="mb-10 text-[clamp(1.8rem,4vw,2.8rem)] leading-tight text-[#1A1714] dark:text-[#F5F1EB]"
   style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
 >
   Questions you probably{" "}
@@ -43,7 +43,7 @@ export default function FAQ() {
   </span>
 </h2>
 
-        <div className="divide-y divide-[#E8E2D9]">
+        <div className="divide-y divide-[#E8E2D9] dark:divide-white/10">
           {faqs.map((faq, i) => {
             const isOpen = open === i;
             return (
@@ -53,7 +53,7 @@ export default function FAQ() {
                   className="w-full flex items-start justify-between gap-4 py-5 text-left group"
                 >
                   <span
-                    className="text-sm font-medium text-[#1A1714] leading-relaxed transition-colors duration-150"
+                    className="text-sm font-medium leading-relaxed text-[#1A1714] transition-colors duration-150 dark:text-[#F5F1EB]"
                     style={{ color: isOpen ? "#D4622A" : undefined }}
                   >
                     {faq.q}
@@ -87,7 +87,7 @@ export default function FAQ() {
                     opacity: isOpen ? 1 : 0,
                   }}
                 >
-                  <p className="text-sm text-[#9B8E7E] leading-relaxed pb-5 pr-10">
+                  <p className="pb-5 pr-10 text-sm leading-relaxed text-[#9B8E7E] dark:text-[#B8ADA0]">
                     {faq.a}
                   </p>
                 </div>

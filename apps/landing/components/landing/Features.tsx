@@ -67,34 +67,34 @@ export default function Features() {
   const last = features[6];
 
   return (
-    <section className="border-t border-[#E8E2D9] px-6 py-24">
+    <section className="border-t border-[#E8E2D9] px-6 py-24 dark:border-white/10">
       <div className="mx-auto max-w-4xl">
         <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <p className="mb-4 font-mono text-xs uppercase tracking-widest text-[#C4B9A8]">
+            <p className="mb-4 font-mono text-xs uppercase tracking-widest text-[#C4B9A8] dark:text-[#8E8377]">
               What you get
             </p>
             <h2
-              className="max-w-md text-[clamp(1.8rem,4vw,3rem)] leading-tight text-[#1A1714]"
+              className="max-w-md text-[clamp(1.8rem,4vw,3rem)] leading-tight text-[#1A1714] dark:text-[#F5F1EB]"
               style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
             >
               One dashboard for founders.
               <em className="text-[#D4622A] not-italic"> Separate workspaces for every team.</em>
             </h2>
           </div>
-          <p className="max-w-xs text-sm leading-relaxed text-[#9B8E7E] md:text-right">
+          <p className="max-w-xs text-sm leading-relaxed text-[#9B8E7E] dark:text-[#B8ADA0] md:text-right">
             Built for companies that want sales, marketing, support, and ops to move separately
             without losing founder control.
           </p>
         </div>
 
-        <div className="grid gap-px rounded-t-2xl border border-[#E8E2D9] bg-[#E8E2D9] sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid gap-px rounded-t-2xl border border-[#E8E2D9] bg-[#E8E2D9] dark:border-white/10 dark:bg-white/10 sm:grid-cols-2 md:grid-cols-3">
           {firstSix.map((feature) => (
             <FeatureCard key={feature.title} {...feature} />
           ))}
         </div>
 
-        <div className="overflow-hidden rounded-b-2xl border-b border-x border-[#E8E2D9]">
+        <div className="overflow-hidden rounded-b-2xl border-b border-x border-[#E8E2D9] dark:border-white/10">
           <FeatureCard {...last} wide />
         </div>
       </div>
@@ -105,29 +105,29 @@ export default function Features() {
 function FeatureCard({ icon, title, description, tag, wide }: FeatureCardProps) {
   return (
     <div
-      className={`group flex gap-4 bg-[#FAF9F6] p-6 transition-colors duration-200 hover:bg-white ${
+      className={`group flex gap-4 bg-[#FAF9F6] p-6 transition-colors duration-200 hover:bg-white dark:bg-[#151515] dark:hover:bg-[#191919] ${
         wide ? "flex-col sm:flex-row sm:items-start" : "flex-col"
       }`}
     >
       <div className={`flex items-center justify-between ${wide ? "shrink-0 sm:flex-col sm:items-start sm:gap-3" : ""}`}>
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F0EDE6] text-[#2C2825] transition-colors duration-200 group-hover:bg-[#D4622A] group-hover:text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#F0EDE6] text-[#2C2825] transition-colors duration-200 group-hover:bg-[#D4622A] group-hover:text-white dark:bg-[#222222] dark:text-[#F5F1EB]">
           {icon}
         </div>
-        <span className="rounded-full border border-[#E8E2D9] px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-[#C4B9A8]">
+        <span className="rounded-full border border-[#E8E2D9] px-2 py-0.5 font-mono text-[10px] uppercase tracking-widest text-[#C4B9A8] dark:border-white/10 dark:text-[#8E8377]">
           {tag}
         </span>
       </div>
 
       <div>
-        <h3 className="mb-2 text-sm font-medium leading-snug text-[#1A1714]">{title}</h3>
-        <p className="text-xs leading-relaxed text-[#9B8E7E]">{description}</p>
+        <h3 className="mb-2 text-sm font-medium leading-snug text-[#1A1714] dark:text-[#F5F1EB]">{title}</h3>
+        <p className="text-xs leading-relaxed text-[#9B8E7E] dark:text-[#B8ADA0]">{description}</p>
 
         {wide && (
           <div className="mt-4 flex flex-wrap gap-2">
             {["EdTech", "SaaS", "Coaching", "Real Estate", "Healthcare", "Agency"].map((industry) => (
               <span
                 key={industry}
-                className="rounded-full border border-[#E8E2D9] bg-[#F0EDE6] px-2.5 py-1 font-mono text-[10px] text-[#9B8E7E]"
+                className="rounded-full border border-[#E8E2D9] bg-[#F0EDE6] px-2.5 py-1 font-mono text-[10px] text-[#9B8E7E] dark:border-white/10 dark:bg-[#222222] dark:text-[#B8ADA0]"
               >
                 {industry}
               </span>

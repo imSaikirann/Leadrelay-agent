@@ -9,22 +9,22 @@ export default function Hero() {
   };
 
   return (
-    <section className="relative overflow-hidden px-6 pt-24 pb-16">
+    <section className="relative overflow-hidden px-6 pb-16 pt-24">
 
       {/* subtle radial glow behind right side */}
-      <div className="absolute right-0 top-0 w-[600px] h-[600px] bg-[#D4622A]/5 rounded-full blur-[100px] pointer-events-none -z-10" />
+      <div className="absolute right-0 top-0 h-[600px] w-[600px] rounded-full bg-[#D4622A]/5 blur-[100px] pointer-events-none -z-10 dark:bg-[#D4622A]/10" />
 
       <div className="max-w-5xl mx-auto w-full">
         <div className="grid md:grid-cols-2 gap-12 items-center">
 
           {/* ── Left: copy ── */}
           <div>
-            <p className="font-mono text-xs text-[#C4B9A8] uppercase tracking-widest mb-6">
+            <p className="mb-6 font-mono text-xs uppercase tracking-widest text-[#C4B9A8] dark:text-[#8E8377]">
               Founder workspace control
             </p>
 
             <h1
-              className="text-[clamp(2rem,4.5vw,3.6rem)] leading-[1.08] text-[#1A1714] mb-5"
+              className="mb-5 text-[clamp(2rem,4.5vw,3.6rem)] leading-[1.08] text-[#1A1714] dark:text-[#F5F1EB]"
               style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
             >
               Run separate team workspaces from{" "}
@@ -33,7 +33,7 @@ export default function Hero() {
               </em>
             </h1>
 
-            <p className="text-base text-[#9B8E7E] leading-relaxed mb-8 max-w-md">
+            <p className="mb-8 max-w-md text-base leading-relaxed text-[#9B8E7E] dark:text-[#B8ADA0]">
               Foundhub gives sales, marketing, support, and ops their own workspace, while founders
               still manage forms, billing, lead scoring, and team activity from one calm control center.
             </p>
@@ -57,8 +57,8 @@ export default function Hero() {
                   </div>
                 ))}
               </div>
-              <p className="text-xs text-[#9B8E7E]">
-                <span className="text-[#1A1714] font-medium">24 founders</span>{" "}
+              <p className="text-xs text-[#9B8E7E] dark:text-[#B8ADA0]">
+                <span className="font-medium text-[#1A1714] dark:text-[#F5F1EB]">24 founders</span>{" "}
                 testing multi-workspace lead operations
               </p>
             </div>

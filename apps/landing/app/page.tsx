@@ -14,7 +14,7 @@ import Waitlist from "@/components/landing/Waitlist";
 
 export default function LandingPage() {
   return (
-    <main className="bg-[#FAF9F6] text-[#1A1714] antialiased">
+    <main className="bg-[#FAF9F6] text-[#1A1714] antialiased dark:bg-[radial-gradient(circle_at_top_left,_rgba(212,98,42,0.12),_transparent_24%),linear-gradient(180deg,_#0b0b0b_0%,_#121212_100%)] dark:text-[#F5F1EB]">
      <Hero />
     
       <SocialProof />    

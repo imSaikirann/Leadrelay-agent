@@ -1,26 +1,26 @@
 export default function WorkspaceDiagram() {
   return (
-    <section className="border-t border-[#E8E2D9] px-6 py-20">
+    <section className="border-t border-[#E8E2D9] px-6 py-20 dark:border-white/10">
       <div className="mx-auto max-w-5xl">
         <div className="grid gap-8 lg:grid-cols-[1fr_1.1fr] lg:items-center">
           <div>
-            <p className="mb-4 font-mono text-xs uppercase tracking-widest text-[#C4B9A8]">
+            <p className="mb-4 font-mono text-xs uppercase tracking-widest text-[#C4B9A8] dark:text-[#8E8377]">
               Workspace model
             </p>
             <h2
-              className="max-w-xl text-[clamp(1.8rem,4vw,3rem)] leading-tight text-[#1A1714]"
+              className="max-w-xl text-[clamp(1.8rem,4vw,3rem)] leading-tight text-[#1A1714] dark:text-[#F5F1EB]"
               style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
             >
               Separate team workspaces.
               <em className="text-[#D4622A] not-italic"> One Foundhub control center.</em>
             </h2>
-            <p className="mt-4 max-w-lg text-sm leading-7 text-[#6E6253]">
+            <p className="mt-4 max-w-lg text-sm leading-7 text-[#6E6253] dark:text-[#B8ADA0]">
               Sales, marketing, support, and ops can run independently inside their own workspace,
               while the founder still sees the full picture in Foundhub.
             </p>
           </div>
 
-          <div className="rounded-[28px] border border-[#E8E2D9] bg-[linear-gradient(135deg,#fffaf4_0%,#fff5ee_52%,#fff1e6_100%)] p-6">
+          <div className="rounded-[28px] border border-[#E8E2D9] bg-[linear-gradient(135deg,#fffaf4_0%,#fff5ee_52%,#fff1e6_100%)] p-6 dark:border-white/10 dark:bg-[linear-gradient(135deg,#171717_0%,#1d1815_52%,#211914_100%)]">
             <div className="rounded-2xl bg-[#1A1714] p-5 text-[#FAF9F6]">
               <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-white/55">
                 Foundhub layout

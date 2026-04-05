@@ -66,18 +66,18 @@ export default function HeroPreview() {
     <div className="relative">
 
       {/* Card stack depth */}
-      <div className="absolute inset-x-3 top-2 h-full bg-[#EDE9E2] rounded-2xl -z-10" />
+      <div className="absolute inset-x-3 top-2 h-full rounded-2xl bg-[#EDE9E2] dark:bg-[#1B1B1B] -z-10" />
 
       {/* Main card */}
-      <div className="bg-white border border-[#E8E2D9] rounded-2xl overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-[#E8E2D9] bg-white dark:border-white/10 dark:bg-[#151515]">
 
         {/* Topbar */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0EDE6] bg-[#FAFAF8]">
+        <div className="flex items-center justify-between border-b border-[#F0EDE6] bg-[#FAFAF8] px-4 py-3 dark:border-white/10 dark:bg-[#191919]">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-xs font-semibold text-[#1A1714]">
+            <span className="font-mono text-xs font-semibold text-[#1A1714] dark:text-[#F5F1EB]">
               Found<span className="text-[#D4622A]">hub</span>
             </span>
-            <span className="font-mono text-[10px] text-[#C4B9A8]">/ leads</span>
+            <span className="font-mono text-[10px] text-[#C4B9A8] dark:text-[#8E8377]">/ leads</span>
           </div>
           <span className="flex items-center gap-1.5 font-mono text-[10px] text-emerald-600 bg-emerald-50 border border-emerald-100 rounded-full px-2.5 py-0.5">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -86,7 +86,7 @@ export default function HeroPreview() {
         </div>
 
         {/* Lead rows */}
-        <div className="divide-y divide-[#F7F5F2]">
+        <div className="divide-y divide-[#F7F5F2] dark:divide-white/5">
           {leads.map((lead, i) => (
             <div
               key={lead.name}
@@ -107,8 +107,8 @@ export default function HeroPreview() {
                       {lead.initials}
                     </div>
                     <div>
-                      <p className="text-xs font-medium text-[#1A1714] leading-tight">{lead.name}</p>
-                      <p className="text-[10px] text-[#C4B9A8] font-mono">{lead.course}</p>
+                      <p className="text-xs font-medium leading-tight text-[#1A1714] dark:text-[#F5F1EB]">{lead.name}</p>
+                      <p className="font-mono text-[10px] text-[#C4B9A8] dark:text-[#8E8377]">{lead.course}</p>
                     </div>
                   </div>
                   <span className={"inline-flex items-center gap-1 text-[10px] font-medium border rounded-full px-2 py-0.5 shrink-0 " + lead.badge}>
@@ -118,19 +118,19 @@ export default function HeroPreview() {
                 </div>
 
                 {/* Quote */}
-                <p className="text-[10px] text-[#9B8E7E] italic leading-relaxed mb-2 pl-8">
+                <p className="mb-2 pl-8 text-[10px] italic leading-relaxed text-[#9B8E7E] dark:text-[#B8ADA0]">
                   "{lead.quote}"
                 </p>
 
                 {/* Footer */}
                 <div className="flex items-center justify-between pl-8">
                   {lead.routedTo ? (
-                    <p className="text-[10px] text-[#C4B9A8]">
+                    <p className="text-[10px] text-[#C4B9A8] dark:text-[#8E8377]">
                       Routed to{" "}
-                      <span className="text-[#1A1714] font-medium">{lead.routedTo}</span>
+                      <span className="font-medium text-[#1A1714] dark:text-[#F5F1EB]">{lead.routedTo}</span>
                     </p>
                   ) : (
-                    <p className="text-[10px] text-[#C4B9A8]">
+                    <p className="text-[10px] text-[#C4B9A8] dark:text-[#8E8377]">
                       {lead.score === "Warm" ? "Awaiting follow-up" : "Nurture sequence"}
                     </p>
                   )}
@@ -144,8 +144,8 @@ export default function HeroPreview() {
         </div>
 
         {/* Bottom bar */}
-        <div className="px-4 py-2.5 border-t border-[#F0EDE6] bg-[#FAFAF8] flex items-center justify-between">
-          <p className="text-[10px] font-mono text-[#C4B9A8]">3 leads scored today</p>
+        <div className="flex items-center justify-between border-t border-[#F0EDE6] bg-[#FAFAF8] px-4 py-2.5 dark:border-white/10 dark:bg-[#191919]">
+          <p className="font-mono text-[10px] text-[#C4B9A8] dark:text-[#8E8377]">3 leads scored today</p>
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1 text-[10px] font-mono text-red-500">
               <span className="w-1.5 h-1.5 rounded-full bg-red-400" />1 hot

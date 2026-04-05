@@ -9,16 +9,16 @@ interface StepProps {
 
 function Step({ number, title, description }: StepProps) {
   return (
-    <div className="group rounded-2xl border border-[#E8E2D9] bg-[#FAF9F6] p-6 hover:border-[#C4B9A8] transition-colors duration-200">
-      <span className="font-mono text-4xl font-medium text-[#E8E2D9] group-hover:text-[#D4622A] transition-colors duration-300">
+    <div className="group rounded-2xl border border-[#E8E2D9] bg-[#FAF9F6] p-6 transition-colors duration-200 hover:border-[#C4B9A8] dark:border-white/10 dark:bg-[#151515] dark:hover:border-[#D4622A]/40">
+      <span className="font-mono text-4xl font-medium text-[#E8E2D9] transition-colors duration-300 group-hover:text-[#D4622A] dark:text-[#3A332D]">
         {number}
       </span>
 
-      <h3 className="mt-4 text-base font-semibold text-[#1A1714] leading-tight">
+      <h3 className="mt-4 text-base font-semibold leading-tight text-[#1A1714] dark:text-[#F5F1EB]">
         {title}
       </h3>
 
-      <p className="mt-2 text-sm text-[#9B8E7E] leading-relaxed">{description}</p>
+      <p className="mt-2 text-sm leading-relaxed text-[#9B8E7E] dark:text-[#B8ADA0]">{description}</p>
 
       <CheckCircle2 className="mt-4 h-5 w-5 text-[#D4622A]" />
     </div>
@@ -48,15 +48,15 @@ export default function HowItWorks() {
   ];
 
   return (
-    <section className="px-6 py-24 border-t border-[#E8E2D9]">
+    <section className="border-t border-[#E8E2D9] px-6 py-24 dark:border-white/10">
       <div className="max-w-4xl mx-auto">
 
       <div className="mb-14">
-  <p className="font-mono text-xs text-[#C4B9A8] uppercase tracking-widest mb-4">
+  <p className="mb-4 font-mono text-xs uppercase tracking-widest text-[#C4B9A8] dark:text-[#8E8377]">
     How it works
   </p>
   <h2
-    className="text-[clamp(1.8rem,4vw,3rem)] text-[#1A1714] leading-tight max-w-xl"
+    className="max-w-xl text-[clamp(1.8rem,4vw,3rem)] leading-tight text-[#1A1714] dark:text-[#F5F1EB]"
     style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
   >
     One system.{" "}
