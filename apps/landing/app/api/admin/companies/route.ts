@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireSuperAdminAccess } from "@/lib/admin-auth";
 
+type MongoDbStats = {
+  dataSize?: number;
+  storageSize?: number;
+  totalSize?: number;
+  fsUsedSize?: number;
+  fsTotalSize?: number;
+};
+
 export async function GET() {
   const access = await requireSuperAdminAccess();
   if (!access) {
@@ -50,13 +58,7 @@ export async function GET() {
     prisma.payment.findMany(),
   ]);
 
-  let dbStats: {
-    dataSize?: number;
-    storageSize?: number;
-    totalSize?: number;
-    fsUsedSize?: number;
-    fsTotalSize?: number;
-  } | null = null;
+  let dbStats: MongoDbStats | null = null;
 
   const configuredQuotaMb = Number(process.env.MONGO_STORAGE_QUOTA_MB ?? "512");
   const quotaBytes =
@@ -66,10 +68,23 @@ export async function GET() {
 
   try {
     const stats = await prisma.$runCommandRaw({ dbStats: 1, scale: 1 });
-    dbStats = (stats as unknown as NonNullable<typeof dbStats>) ?? null;
+    dbStats = (stats as unknown as MongoDbStats) ?? null;
   } catch {
     dbStats = null;
   }
+
+  const storageUsedBytes =
+    dbStats?.totalSize ??
+    dbStats?.storageSize ??
+    dbStats?.dataSize ??
+    null;
+
+  const storageFreeBytes =
+    typeof dbStats?.fsTotalSize === "number" && typeof dbStats?.fsUsedSize === "number"
+      ? Math.max(0, dbStats.fsTotalSize - dbStats.fsUsedSize)
+      : typeof storageUsedBytes === "number"
+        ? Math.max(0, quotaBytes - storageUsedBytes)
+        : null;
 
   const items = companies.map((company) => {
     const usedLeads = company.leadForm.reduce((sum, form) => sum + form._count.submissions, 0);
@@ -149,20 +164,8 @@ export async function GET() {
         submissions: totalSubmissions,
         totalRecords: totalCompanies + totalMembers + totalTeams + totalForms + totalSubmissions,
         storageQuotaBytes: quotaBytes,
-        storageUsedBytes:
-          dbStats?.totalSize ??
-          dbStats?.storageSize ??
-          dbStats?.dataSize ??
-          null,
-        storageFreeBytes:
-          typeof dbStats?.fsTotalSize === "number" && typeof dbStats?.fsUsedSize === "number"
-            ? Math.max(0, dbStats.fsTotalSize - dbStats.fsUsedSize)
-            : typeof (dbStats?.totalSize ?? dbStats?.storageSize ?? dbStats?.dataSize) === "number"
-              ? Math.max(
-                  0,
-                  quotaBytes - Number(dbStats?.totalSize ?? dbStats?.storageSize ?? dbStats?.dataSize ?? 0)
-                )
-            : null,
+        storageUsedBytes,
+        storageFreeBytes,
         note:
           dbStats
             ? "Showing live Mongo database stats from dbStats with a 512 MB quota fallback."
