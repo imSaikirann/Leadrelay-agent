@@ -1,5 +1,5 @@
-import { CheckCircle2 } from 'lucide-react';
-import React from 'react';
+import { CheckCircle2 } from "lucide-react";
+import React from "react";
 
 interface StepProps {
   number: string;
@@ -29,50 +29,48 @@ export default function HowItWorks() {
   const steps = [
     {
       number: "01",
-      title: "Set up forms and workspaces once.",
+      title: "Your business finally runs from one system.",
       description:
-        "Launch with a ready form, create separate team workspaces, and keep founder-level visibility from the first day.",
+        "Leads, sales, team activity, marketing, and operations stop living in separate tools and start showing up in one founder workspace.",
     },
     {
       number: "02",
-      title: "Every lead gets read and scored by AI.",
+      title: "AI tells you what deserves attention now.",
       description:
-        "Foundhub reads urgency, intent, timeline, and context from every submission and ranks each lead as hot, warm, or cold.",
+        "Every inbound lead is automatically classified as hot, warm, or cold based on what people say and how they behave.",
     },
     {
       number: "03",
-      title: "The right workspace handles the right work.",
+      title: "Your team moves with more clarity.",
       description:
-        "Sales, marketing, support, and ops each work in their own space, while founders still manage billing, teams, and activity from one dashboard.",
+        "You know who owns what, where leads are stuck, and what is actually happening in the business without chasing updates.",
     },
   ];
 
   return (
     <section className="border-t border-[#E8E2D9] px-6 py-24 dark:border-white/10">
-      <div className="max-w-4xl mx-auto">
+      <div className="mx-auto max-w-4xl">
+        <div className="mb-14">
+          <p className="mb-4 font-mono text-xs uppercase tracking-widest text-[#C4B9A8] dark:text-[#8E8377]">
+            What changes
+          </p>
+          <h2
+            className="max-w-xl text-[clamp(1.8rem,4vw,3rem)] leading-tight text-[#1A1714] dark:text-[#F5F1EB]"
+            style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
+          >
+            What changes with{" "}
+            <span className="relative inline-block">
+              FoundHub.
+              <span className="absolute left-0 -bottom-1 h-[3px] w-full rounded-full bg-[#D4622A]" />
+            </span>
+          </h2>
+        </div>
 
-      <div className="mb-14">
-  <p className="mb-4 font-mono text-xs uppercase tracking-widest text-[#C4B9A8] dark:text-[#8E8377]">
-    How it works
-  </p>
-  <h2
-    className="max-w-xl text-[clamp(1.8rem,4vw,3rem)] leading-tight text-[#1A1714] dark:text-[#F5F1EB]"
-    style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
-  >
-    One system.{" "}
-    <span className="relative inline-block">
-      Multiple workspaces.
-      <span className="absolute left-0 -bottom-1 w-full h-[3px] bg-[#D4622A] rounded-full" />
-    </span>
-  </h2>
-</div>
-
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid gap-6 md:grid-cols-3">
           {steps.map((step) => (
             <Step key={step.number} {...step} />
           ))}
         </div>
-
       </div>
     </section>
   );

@@ -6,11 +6,13 @@ import { usePathname } from "next/navigation";
 import { CustomButton } from "./CustomButton";
 import { Building, LogOut, SettingsIcon } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import { useTheme } from "@/components/providers/ThemeProvider";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { data: session } = useSession();
+  const { theme } = useTheme();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname() ?? "";
 
@@ -47,12 +49,20 @@ export default function Navbar() {
     <nav
       className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-4 transition-all duration-300"
       style={{
-        background: scrolled ? "rgba(250,249,246,0.85)" : "transparent",
+        background: scrolled
+          ? theme === "dark"
+            ? "rgba(17,17,17,0.88)"
+            : "rgba(250,249,246,0.85)"
+          : "transparent",
         backdropFilter: scrolled ? "blur(12px)" : "none",
-        borderBottom: scrolled ? "1px solid #E8E2D9" : "1px solid transparent",
+        borderBottom: scrolled
+          ? theme === "dark"
+            ? "1px solid rgba(255,255,255,0.10)"
+            : "1px solid #E8E2D9"
+          : "1px solid transparent",
       }}
     >
-      <span className="font-mono text-sm font-medium text-[#1A1714] tracking-tight">
+      <span className="font-mono text-sm font-medium tracking-tight text-[#1A1714] dark:text-[#F5F1EB]">
         Found<span className="text-[#D4622A]">hub</span>
       </span>
 
@@ -78,9 +88,9 @@ export default function Navbar() {
             </button>
 
             {dropdownOpen && (
-              <div className="absolute right-0 mt-3 w-52 rounded-2xl border border-[#E8E2D9] bg-white shadow-lg overflow-hidden">
+              <div className="absolute right-0 mt-3 w-52 overflow-hidden rounded-2xl border border-[#E8E2D9] bg-white shadow-lg dark:border-white/10 dark:bg-[#171717]">
                 {/* User info */}
-                <div className="px-4 py-3 border-b border-[#E8E2D9] flex items-center gap-3">
+                <div className="flex items-center gap-3 border-b border-[#E8E2D9] px-4 py-3 dark:border-white/10">
                   {session.user.image ? (
                     <img src={session.user.image} alt="" className="w-8 h-8 rounded-full object-cover" />
                   ) : (
@@ -89,8 +99,8 @@ export default function Navbar() {
                     </div>
                   )}
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-[#1A1714] truncate">{session.user.name}</p>
-                    <p className="text-xs text-[#9B8E7E] truncate">{session.user.email}</p>
+                    <p className="truncate text-xs font-medium text-[#1A1714] dark:text-[#F5F1EB]">{session.user.name}</p>
+                    <p className="truncate text-xs text-[#9B8E7E] dark:text-[#A99C8B]">{session.user.email}</p>
                   </div>
                 </div>
 
@@ -101,7 +111,7 @@ export default function Navbar() {
                       key={item.label}
                       href={item.href}
                       onClick={() => setDropdownOpen(false)}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#1A1714] transition-colors hover:bg-[#FAF9F6]"
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-[#1A1714] transition-colors hover:bg-[#FAF9F6] dark:text-[#F5F1EB] dark:hover:bg-[#1F1F1F]"
                     >
                       <span className="text-base">{item.icon}</span>
                       <span className="font-mono">{item.label}</span>
@@ -110,7 +120,7 @@ export default function Navbar() {
 
                   <button
                     onClick={() => { setDropdownOpen(false); signOut({ callbackUrl: "/" }); }}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-[#FAF9F6]"
+                    className="flex w-full items-center gap-3 px-4 py-2.5 text-sm transition-colors hover:bg-[#FAF9F6] dark:hover:bg-[#1F1F1F]"
                     style={{ color: "#ef4444" }}
                   >
                     <span className="text-base"><LogOut className="size-4"/></span>

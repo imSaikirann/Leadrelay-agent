@@ -12,52 +12,52 @@ interface FeatureCardProps {
 const features = [
   {
     icon: <Brain className="h-4 w-4" />,
-    tag: "scoring",
-    title: "AI scoring that reads intent, not just form fields.",
+    tag: "lead intelligence",
+    title: "Know which leads deserve your time first.",
     description:
-      "Foundhub reads urgency, goals, buying language, and timeline from every submission so your team sees real buying signal instead of shallow tags.",
+      "AI Lead Intelligence classifies leads as hot, warm, or cold so you stop guessing and focus your team on the leads most likely to convert.",
   },
   {
     icon: <Bell className="h-4 w-4" />,
-    tag: "alerts",
-    title: "Every hot lead lands with context attached.",
+    tag: "follow-up",
+    title: "Respond faster with the context already there.",
     description:
-      "Sales does not just get a name and email. They get the score, the reason, and the exact details that made the lead urgent.",
+      "Your team sees why a lead matters before they reach out, which means better follow-up, faster response time, and fewer missed opportunities.",
   },
   {
     icon: <Users className="h-4 w-4" />,
-    tag: "crm",
-    title: "Separate workspaces for separate teams.",
+    tag: "team clarity",
+    title: "Create accountability without micromanaging.",
     description:
-      "Create dedicated workspaces for sales, marketing, support, and ops, then manage access and activity from one founder view.",
+      "Team and lead management stays clear. You can see ownership, activity, and progress without asking three people for a status update.",
   },
   {
     icon: <Code2 className="h-4 w-4" />,
-    tag: "embed",
-    title: "Forms go live fast, scoring starts immediately.",
+    tag: "workflow",
+    title: "Launch quickly without rebuilding your workflow.",
     description:
-      "Drop your form on a landing page, campaign page, or webinar signup and start collecting and routing inbound leads right away.",
+      "Capture inbound leads, route them into the right workflow, and start scoring immediately without stitching together extra tools.",
   },
   {
     icon: <Zap className="h-4 w-4" />,
-    tag: "transparency",
-    title: "Founders keep one operating layer across all teams.",
+    tag: "visibility",
+    title: "See the business clearly without checking five tools.",
     description:
-      "Billing, team setup, workspaces, and lead flow stay in one place, even when each team runs its own queue and form workflow.",
+      "FoundHub becomes the one founder dashboard for leads, team activity, marketing signals, and operating flow.",
   },
   {
     icon: <BarChart3 className="h-4 w-4" />,
-    tag: "analytics",
-    title: "See which workspaces and channels actually convert.",
+    tag: "decision-making",
+    title: "Make faster decisions with less mental load.",
     description:
-      "Track lead quality, volume, and conversion trends so you can see which team spaces and sources produce real pipeline.",
+      "You stop piecing together the story manually and start acting on one clear view of what is working, what is stuck, and what needs attention.",
   },
   {
     icon: <Layout className="h-4 w-4" />,
-    tag: "forms",
-    title: "Industry-ready forms with sensible defaults.",
+    tag: "fit",
+    title: "Start with a setup that already makes sense.",
     description:
-      "Get ready-to-use forms for EdTech, SaaS, coaching, real estate, and more. Default fields, options, and prompts are already set up for launch.",
+      "Built for early-stage founders in edtech, agencies, and service businesses who need clarity quickly, not a complex rollout.",
     wide: true,
   },
 ];
@@ -72,19 +72,19 @@ export default function Features() {
         <div className="mb-16 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="mb-4 font-mono text-xs uppercase tracking-widest text-[#C4B9A8] dark:text-[#8E8377]">
-              What you get
+              Why founders use it
             </p>
             <h2
               className="max-w-md text-[clamp(1.8rem,4vw,3rem)] leading-tight text-[#1A1714] dark:text-[#F5F1EB]"
               style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
             >
-              One dashboard for founders.
-              <em className="text-[#D4622A] not-italic"> Separate workspaces for every team.</em>
+              Benefits that matter to founders.
+              <em className="text-[#D4622A] not-italic"> Not a pile of features.</em>
             </h2>
           </div>
           <p className="max-w-xs text-sm leading-relaxed text-[#9B8E7E] dark:text-[#B8ADA0] md:text-right">
-            Built for companies that want sales, marketing, support, and ops to move separately
-            without losing founder control.
+            Every part of FoundHub is designed to reduce noise, sharpen focus, and help your team
+            move on what actually drives revenue.
           </p>
         </div>
 
@@ -94,7 +94,7 @@ export default function Features() {
           ))}
         </div>
 
-        <div className="overflow-hidden rounded-b-2xl border-b border-x border-[#E8E2D9] dark:border-white/10">
+        <div className="overflow-hidden rounded-b-2xl border-x border-b border-[#E8E2D9] dark:border-white/10">
           <FeatureCard {...last} wide />
         </div>
       </div>
@@ -124,12 +124,12 @@ function FeatureCard({ icon, title, description, tag, wide }: FeatureCardProps) 
 
         {wide && (
           <div className="mt-4 flex flex-wrap gap-2">
-            {["EdTech", "SaaS", "Coaching", "Real Estate", "Healthcare", "Agency"].map((industry) => (
+            {["EdTech", "Agencies", "Service Businesses"].map((label) => (
               <span
-                key={industry}
+                key={label}
                 className="rounded-full border border-[#E8E2D9] bg-[#F0EDE6] px-2.5 py-1 font-mono text-[10px] text-[#9B8E7E] dark:border-white/10 dark:bg-[#222222] dark:text-[#B8ADA0]"
               >
-                {industry}
+                {label}
               </span>
             ))}
           </div>
