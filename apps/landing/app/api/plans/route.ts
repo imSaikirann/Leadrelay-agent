@@ -1,9 +1,8 @@
 // app/api/plans/route.ts
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 
 import { prisma } from "@/lib/prisma";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { requireSuperAdminAccess } from "@/lib/admin-auth";
 
 // Only superadmin can POST. Anyone authenticated can GET (to show pricing page).
 export async function GET() {
@@ -15,18 +14,11 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  // Only superadmin TeamMember can create/modify plans
-  const caller = await prisma.teamMember.findFirst({
-    where: { email: session.user.email, role: "superadmin" },
-  });
-  if (!caller)
+  const access = await requireSuperAdminAccess();
+  if (!access)
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-  const { name, priceMonthly, trialDays, maxLeads, maxMembers, features } = await req.json();
+  const { name, dodoPlanId, priceMonthly, trialDays, maxLeads, maxMembers, features } = await req.json();
 
   if (!name || priceMonthly === undefined)
     return NextResponse.json({ error: "name and priceMonthly are required" }, { status: 400 });
@@ -34,6 +26,7 @@ export async function POST(req: Request) {
   const plan = await prisma.plan.create({
     data: {
       name,
+      dodoPlanId: dodoPlanId?.trim() || null,
       priceMonthly,
       trialDays: trialDays ?? 7,
       maxLeads: maxLeads ?? null,

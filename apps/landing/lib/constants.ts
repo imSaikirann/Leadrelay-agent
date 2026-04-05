@@ -7,6 +7,9 @@ export const LEAD_RANK = {
 export const ROLES = {
   SUPERADMIN: "superadmin",
   OWNER: "owner",
+  ADMIN: "admin",
+  SALES_LEAD: "sales_lead",
+  LEAD_GEN: "lead_gen",
   SALES_REP: "sales_rep",
 } as const;
 

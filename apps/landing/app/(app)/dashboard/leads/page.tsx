@@ -1,23 +1,18 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
-import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import LeadsClient from "./LeadsClient";
+import { MEMBER_ROLE, resolveAccess } from "@/lib/access";
 
 export default async function LeadsPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/login");
 
-  const company = await prisma.company.findUnique({
-    where: { userId: session.user.id },
-  });
-  if (!company) redirect("/onboarding");
+  const access = await resolveAccess(session);
+  if (!access) redirect("/login");
 
-  const submissions = await prisma.formSubmission.findMany({
-    where: { companyId: company.id },
-    include: { form: { select: { name: true } } },
-    orderBy: { createdAt: "desc" },
-  });
+  if (access.role === MEMBER_ROLE.SALES_REP) redirect("/dashboard/rep");
+  if (!access.company) redirect("/onboarding");
 
-  return <LeadsClient formId="" />;
+  return <LeadsClient formId="" canAssign={access.isOwner || access.role === "admin" || access.role === "sales_lead"} />;
 }

@@ -1,11 +1,13 @@
+import { prisma } from "@/lib/prisma";
+
 export type AdminUser = {
   id: string;
   name: string;
   email: string;
   company: string;
   industry: string;
-  plan: "free" | "pro" | "business";
-  status: "active" | "inactive" | "suspended";
+  plan: string;
+  status: "active" | "inactive";
   leads: number;
   usedLeads: number;
   joinedAt: string;
@@ -19,68 +21,187 @@ export type AdminLead = {
   company: string;
   leadName: string;
   email: string;
-  score: "Hot" | "Warm" | "Cold";
+  score: "Hot" | "Warm" | "Cold" | "Pending";
   industry: string;
   createdAt: string;
 };
 
-export const adminUsers: AdminUser[] = [
-  {
-    id: "u1", name: "Arjun Mehta", email: "arjun@techstartup.io",
-    company: "TechStartup", industry: "edtech", plan: "pro",
-    status: "active", leads: 500, usedLeads: 312,
-    joinedAt: "Jan 12, 2025", lastActive: "2h ago",
-  },
-  {
-    id: "u2", name: "Priya Sharma", email: "priya@growthco.io",
-    company: "GrowthCo", industry: "saas", plan: "business",
-    status: "active", leads: 999, usedLeads: 784,
-    joinedAt: "Feb 3, 2025", lastActive: "5m ago",
-  },
-  {
-    id: "u3", name: "Rahul Nair", email: "rahul@coaching.com",
-    company: "Nair Coaching", industry: "coaching", plan: "free",
-    status: "active", leads: 50, usedLeads: 47,
-    joinedAt: "Mar 18, 2025", lastActive: "1d ago",
-  },
-  {
-    id: "u4", name: "Sneha Patel", email: "sneha@realty.in",
-    company: "Patel Realty", industry: "real-estate", plan: "pro",
-    status: "inactive", leads: 500, usedLeads: 120,
-    joinedAt: "Dec 5, 2024", lastActive: "12d ago",
-  },
-  {
-    id: "u5", name: "Dev Kumar", email: "dev@agency.io",
-    company: "Dev Agency", industry: "agency", plan: "free",
-    status: "suspended", leads: 50, usedLeads: 50,
-    joinedAt: "Nov 22, 2024", lastActive: "30d ago",
-  },
-];
+export type AdminSupportSignal = {
+  id: string;
+  company: string;
+  owner: string;
+  plan: string;
+  reason: string;
+  priority: "high" | "medium" | "low";
+};
 
-export const adminLeads: AdminLead[] = [
-  { id: "l1", userId: "u1", userName: "Arjun Mehta", company: "TechStartup", leadName: "Vikram Singh", email: "vikram@infosys.com", score: "Hot", industry: "EdTech", createdAt: "2h ago" },
-  { id: "l2", userId: "u2", userName: "Priya Sharma", company: "GrowthCo", leadName: "James Carter", email: "james@growthco.io", score: "Hot", industry: "SaaS", createdAt: "5m ago" },
-  { id: "l3", userId: "u3", userName: "Rahul Nair", company: "Nair Coaching", leadName: "Aisha Patel", email: "aisha@startup.com", score: "Warm", industry: "Coaching", createdAt: "1h ago" },
-  { id: "l4", userId: "u1", userName: "Arjun Mehta", company: "TechStartup", leadName: "Meera Nair", email: "meera@gmail.com", score: "Cold", industry: "EdTech", createdAt: "3h ago" },
-  { id: "l5", userId: "u2", userName: "Priya Sharma", company: "GrowthCo", leadName: "Sara Liu", email: "sara@techfirm.com", score: "Warm", industry: "SaaS", createdAt: "30m ago" },
-  { id: "l6", userId: "u4", userName: "Sneha Patel", company: "Patel Realty", leadName: "Rohit Gupta", email: "rohit@investments.com", score: "Hot", industry: "Real Estate", createdAt: "2d ago" },
-];
+export async function getAdminUsers(): Promise<AdminUser[]> {
+  const companies = await prisma.company.findMany({
+    include: {
+      user: true,
+      subscription: { include: { plan: true } },
+      leadForm: {
+        include: {
+          _count: { select: { submissions: true } },
+        },
+      },
+      teamMembers: true,
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
-export function getAdminStats() {
-  const totalRevenue = adminUsers.reduce((acc, u) => {
-    if (u.plan === "pro") return acc + 29;
-    if (u.plan === "business") return acc + 79;
-    return acc;
-  }, 0);
+  return companies.map((company) => {
+    const usedLeads = company.leadForm.reduce((sum, form) => sum + form._count.submissions, 0);
+    const maxLeads = company.subscription?.plan?.maxLeads ?? usedLeads;
+    const lastActivity = [
+      company.updatedAt,
+      ...company.leadForm.map((form) => form.updatedAt),
+      ...company.teamMembers.map((member) => member.updatedAt),
+    ].sort((a, b) => b.getTime() - a.getTime())[0];
+
+    return {
+      id: company.id,
+      name: company.user.name ?? company.name,
+      email: company.user.email ?? company.email,
+      company: company.name,
+      industry: company.industry,
+      plan: company.subscription?.plan?.name?.toLowerCase() ?? "trial",
+      status: company.subscription?.status === "cancelled" ? "inactive" : "active",
+      leads: maxLeads,
+      usedLeads,
+      joinedAt: company.createdAt.toLocaleDateString(),
+      lastActive: lastActivity.toLocaleDateString(),
+    };
+  });
+}
+
+export async function getAdminLeads(limit?: number): Promise<AdminLead[]> {
+  const leads = await prisma.formSubmission.findMany({
+    include: {
+      form: {
+        include: {
+          company: {
+            include: { user: true },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+    ...(limit ? { take: limit } : {}),
+  });
+
+  return leads.map((lead) => {
+    const payload = lead.data as Record<string, string>;
+    const name =
+      Object.entries(payload).find(([key]) => key.toLowerCase().includes("name"))?.[1] ?? "Unknown";
+    const email =
+      Object.entries(payload).find(([key]) => key.toLowerCase().includes("email"))?.[1] ?? "Unknown";
+
+    return {
+      id: lead.id,
+      userId: lead.form?.company.id ?? "",
+      userName: lead.form?.company.user.name ?? lead.form?.company.name ?? "Unknown",
+      company: lead.form?.company.name ?? "Unknown",
+      leadName: String(name),
+      email: String(email),
+      score:
+        lead.rank === "hot" ? "Hot" : lead.rank === "warm" ? "Warm" : lead.rank === "cold" ? "Cold" : "Pending",
+      industry: lead.form?.company.industry ?? "Unknown",
+      createdAt: lead.createdAt.toLocaleString(),
+    };
+  });
+}
+
+export async function getAdminStats() {
+  const [users, leads, subscriptions] = await Promise.all([
+    getAdminUsers(),
+    getAdminLeads(),
+    prisma.subscription.findMany({
+      include: { plan: true },
+      where: { status: { not: "cancelled" } },
+    }),
+  ]);
+
+  const mrr = subscriptions.reduce((sum, subscription) => sum + (subscription.plan.priceMonthly ?? 0), 0);
 
   return {
-    totalUsers: adminUsers.length,
-    activeUsers: adminUsers.filter((u) => u.status === "active").length,
-    totalLeads: adminLeads.length,
-    hotLeads: adminLeads.filter((l) => l.score === "Hot").length,
-    mrr: totalRevenue,
-    proUsers: adminUsers.filter((u) => u.plan === "pro").length,
-    businessUsers: adminUsers.filter((u) => u.plan === "business").length,
-    freeUsers: adminUsers.filter((u) => u.plan === "free").length,
+    totalUsers: users.length,
+    activeUsers: users.filter((user) => user.status === "active").length,
+    totalLeads: leads.length,
+    hotLeads: leads.filter((lead) => lead.score === "Hot").length,
+    mrr,
+    proUsers: users.filter((user) => user.plan === "pro").length,
+    businessUsers: users.filter((user) => user.plan === "business").length,
+    freeUsers: users.filter((user) => user.plan === "free" || user.plan === "trial").length,
   };
+}
+
+export async function getAdminSupportSignals(): Promise<AdminSupportSignal[]> {
+  const companies = await prisma.company.findMany({
+    include: {
+      user: true,
+      subscription: { include: { plan: true } },
+      leadForm: {
+        include: {
+          _count: { select: { submissions: true } },
+        },
+      },
+    },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  const now = new Date();
+
+  return companies
+    .map((company) => {
+      const usedLeads = company.leadForm.reduce((sum, form) => sum + form._count.submissions, 0);
+      const limit = company.subscription?.plan?.maxLeads ?? 1500;
+      const usagePct = limit > 0 ? Math.round((usedLeads / limit) * 100) : 0;
+      const daysLeftInTrial = company.subscription?.trialEnd
+        ? Math.ceil((company.subscription.trialEnd.getTime() - now.getTime()) / 86400000)
+        : null;
+
+      if (company.subscription?.status === "trial" && daysLeftInTrial !== null && daysLeftInTrial <= 2) {
+        return {
+          id: `${company.id}-trial`,
+          company: company.name,
+          owner: company.user.name ?? company.user.email ?? company.email,
+          plan: company.subscription.plan?.name ?? "Trial",
+          reason: `Trial ends in ${Math.max(0, daysLeftInTrial)} day(s)`,
+          priority: "high" as const,
+        };
+      }
+
+      if (usagePct >= 90) {
+        return {
+          id: `${company.id}-usage`,
+          company: company.name,
+          owner: company.user.name ?? company.user.email ?? company.email,
+          plan: company.subscription?.plan?.name ?? "Trial",
+          reason: `Using ${usagePct}% of monthly lead allowance`,
+          priority: "medium" as const,
+        };
+      }
+
+      if (company.subscription?.status === "past_due" || company.subscription?.status === "expired") {
+        return {
+          id: `${company.id}-billing`,
+          company: company.name,
+          owner: company.user.name ?? company.user.email ?? company.email,
+          plan: company.subscription.plan?.name ?? "Trial",
+          reason: `Billing status is ${company.subscription.status}`,
+          priority: "high" as const,
+        };
+      }
+
+      return {
+        id: `${company.id}-checkin`,
+        company: company.name,
+        owner: company.user.name ?? company.user.email ?? company.email,
+        plan: company.subscription?.plan?.name ?? "Trial",
+        reason: "Low-risk account, monitor for growth and support questions",
+        priority: "low" as const,
+      };
+    })
+    .slice(0, 8);
 }

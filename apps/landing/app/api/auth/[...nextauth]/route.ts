@@ -4,6 +4,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import { isSuperAdminEmail } from "@/lib/access";
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -20,14 +21,11 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-
-      
         if (!credentials?.email || !credentials?.password) return null;
-  console.log(credentials)
-        // Sales reps live in TeamMember, not User
+        const normalizedEmail = credentials.email.trim().toLowerCase();
+
         const member = await prisma.teamMember.findFirst({
-          where: { email: credentials.email, status: "active" },
-          include: { company: true },
+          where: { email: normalizedEmail, status: "active" },
         });
 
         if (!member) return null;
@@ -53,14 +51,21 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
+        const resolvedEmail = (user.email ?? token.email) as string | undefined;
+        const elevatedRole = isSuperAdminEmail(resolvedEmail) ? "superadmin" : (user as any).role;
         token.id        = user.id;
         token.email     = user.email;
         token.name      = user.name;
         token.picture   = (user as any).image ?? null;
-        token.role      = (user as any).role      ?? "owner";
+        token.role      = elevatedRole ?? "owner";
         token.companyId = (user as any).companyId ?? null;
         token.isMember  = (user as any).isMember  ?? false;
       }
+
+      if (!user && isSuperAdminEmail(token.email as string | undefined)) {
+        token.role = "superadmin";
+      }
+
       return token;
     },
     async session({ session, token }) {

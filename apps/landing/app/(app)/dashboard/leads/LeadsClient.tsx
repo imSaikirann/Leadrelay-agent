@@ -5,6 +5,8 @@ import LeadsImportButton from "./LeadsImportButton";
 import LeadsExportButton from "./LeadsExportButton";
 import AssignButton from "./AssignButton";
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp } from "lucide-react";
+import { useAppStore } from "@/store/useAppStore";
+import { ALL_WORKSPACES_ID, FOUNDER_WORKSPACE_ID } from "@/lib/workspace";
 
 type Submission = {
   id: string;
@@ -28,15 +30,19 @@ const filters = ["all", "hot", "warm", "cold", "pending"] as const;
 type Filter = typeof filters[number];
 const PAGE_SIZE = 20;
 
-async function fetchSubmissions(page: number, rank: Filter) {
+async function fetchSubmissions(page: number, rank: Filter, workspaceId: string) {
   const params = new URLSearchParams({ page: String(page) });
   if (rank !== "all") params.set("rank", rank);
+  if (workspaceId !== ALL_WORKSPACES_ID && workspaceId !== FOUNDER_WORKSPACE_ID) {
+    params.set("workspaceId", workspaceId);
+  }
   const res = await fetch(`/api/leads/submissions?${params}`, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to fetch");
   return res.json() as Promise<{ submissions: Submission[]; total: number; page: number }>;
 }
 
-export default function LeadsClient({ formId }: { formId: string }) {
+export default function LeadsClient({ formId, canAssign = true }: { formId: string; canAssign?: boolean }) {
+  const activeWorkspace = useAppStore((s) => s.activeWorkspace);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [total, setTotal]             = useState(0);
   const [page, setPage]               = useState(1);
@@ -50,15 +56,15 @@ export default function LeadsClient({ formId }: { formId: string }) {
 
   const load = useCallback(async (p: number, f: Filter) => {
     try {
-      const data = await fetchSubmissions(p, f);
+      const data = await fetchSubmissions(p, f, activeWorkspace);
       setSubmissions(data.submissions);
       setTotal(data.total);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [activeWorkspace]);
 
-  useEffect(() => { setLoading(true); load(page, filter); }, [page, filter, load]);
+  useEffect(() => { setLoading(true); load(page, filter); }, [page, filter, load, activeWorkspace]);
 
   useEffect(() => {
     if (!hasPending) { if (pollRef.current) clearTimeout(pollRef.current); return; }
@@ -79,6 +85,9 @@ export default function LeadsClient({ formId }: { formId: string }) {
           </h1>
           <p className="text-sm text-[#9B8E7E] mt-1 flex items-center gap-2">
             Incoming leads ranked by AI.
+            <span className="text-xs font-mono text-[#C4B9A8]">
+              {activeWorkspace === ALL_WORKSPACES_ID ? "All workspaces" : activeWorkspace === FOUNDER_WORKSPACE_ID ? "Founder view" : "Selected workspace"}
+            </span>
             {hasPending && (
               <span className="inline-flex items-center gap-1 text-xs font-mono text-amber-500">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
@@ -184,11 +193,13 @@ export default function LeadsClient({ formId }: { formId: string }) {
 
                     {/* Assign — bottom of expanded, full width row */}
                     <div className="mt-4 flex items-center justify-between">
-                      <AssignButton
-                        submissionId={s.id}
-                        assignedTo={s.assignedTo}
-                        onAssigned={() => load(page, filter)}
-                      />
+                      {canAssign && (
+                        <AssignButton
+                          submissionId={s.id}
+                          assignedTo={s.assignedTo}
+                          onAssigned={() => load(page, filter)}
+                        />
+                      )}
                       {s.status && s.status !== "new" && (
                         <span className="text-xs font-mono text-[#9B8E7E] capitalize">
                           Status: {s.status}

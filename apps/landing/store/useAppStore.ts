@@ -20,7 +20,9 @@ interface Company {
 interface AppStore {
   company: Company | null;
   members: Member[];
+  activeWorkspace: string;
   setCompany: (company: Company) => void;
+  setActiveWorkspace: (workspace: string) => void;
   addMember: (member: Member) => void;
   updateMember: (id: string, updates: Partial<Member>) => void;
   removeMember: (id: string) => void;
@@ -31,6 +33,7 @@ export const useAppStore = create<AppStore>()(
   persist(
     (set) => ({
       company: null,
+      activeWorkspace: "all",
       members: [
         {
           id: "1", name: "Arjun Mehta", email: "arjun@company.com",
@@ -49,6 +52,7 @@ export const useAppStore = create<AppStore>()(
         },
       ],
       setCompany: (company) => set({ company }),
+      setActiveWorkspace: (activeWorkspace) => set({ activeWorkspace }),
       addMember: (member) =>
         set((state) => ({ members: [...state.members, member] })),
       updateMember: (id, updates) =>
@@ -61,7 +65,7 @@ export const useAppStore = create<AppStore>()(
         set((state) => ({
           members: state.members.filter((m) => m.id !== id),
         })),
-      reset: () => set({ company: null, members: [] }),
+      reset: () => set({ company: null, members: [], activeWorkspace: "all" }),
     }),
     { name: "inboq-store" }
   )

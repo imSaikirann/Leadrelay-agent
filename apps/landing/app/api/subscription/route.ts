@@ -50,6 +50,7 @@ export async function GET() {
     id: sub.id,
     status: sub.status,
     plan: sub.plan,
+    planId: sub.planId,
     trialEnd: sub.trialEnd,
     daysLeftInTrial,
     currentPeriodEnd: sub.currentPeriodEnd,

@@ -1,37 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "../../auth/[...nextauth]/route";
+import { canManageWorkspace, MEMBER_ROLE, resolveAccess, TEAM_KIND } from "@/lib/access";
 
-// ── helper ─────────────────────────────────────────────
-async function getCompanyId(email: string): Promise<string | null> {
-  const c = await prisma.company.findFirst({
-    where: { user: { email } },
-    select: { id: true },
-  });
-  return c?.id ?? null;
-}
-
-// ── PATCH /api/teams/[id] ─────────────────────────────
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> } // ✅ FIX
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await context.params; // ✅ FIX
-
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const access = await resolveAccess(session);
+
+  if (!access || !access.company || !canManageWorkspace(access)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const companyId = await getCompanyId(session.user.email);
-  if (!companyId) {
-    return NextResponse.json({ error: "Company not found" }, { status: 404 });
-  }
+  const { id } = await context.params;
 
   const existing = await prisma.team.findFirst({
-    where: { id, companyId }, // ✅ FIX
+    where: { id, companyId: access.company.id },
     include: { memberships: { select: { teamMemberId: true } } },
   });
 
@@ -39,49 +26,46 @@ export async function PATCH(
     return NextResponse.json({ error: "Team not found" }, { status: 404 });
   }
 
-  const { name, description, color, teamLeadId, memberIds } = await req.json();
-
-  // ── Role management ──
+  const { name, description, color, kind, teamLeadId, memberIds } = await req.json();
   const prevLeadId = existing.teamLeadId;
   const newLeadId = teamLeadId !== undefined ? teamLeadId : prevLeadId;
 
   if (newLeadId !== prevLeadId) {
     if (prevLeadId) {
       const otherTeams = await prisma.team.count({
-        where: { teamLeadId: prevLeadId, id: { not: id } }, // ✅ FIX
+        where: { companyId: access.company.id, teamLeadId: prevLeadId, id: { not: id } },
       });
 
       if (otherTeams === 0) {
         await prisma.teamMember.updateMany({
-          where: { id: prevLeadId, role: "sales_lead" },
-          data: { role: "sales_rep" },
+          where: { id: prevLeadId, role: MEMBER_ROLE.SALES_LEAD },
+          data: { role: MEMBER_ROLE.SALES_REP },
         });
       }
     }
 
     if (newLeadId) {
       const newLead = await prisma.teamMember.findFirst({
-        where: { id: newLeadId, companyId },
+        where: { id: newLeadId, companyId: access.company.id },
       });
 
       if (!newLead) {
         return NextResponse.json({ error: "New team lead not found" }, { status: 400 });
       }
 
-      if (newLead.role === "sales_rep") {
+      if (newLead.role === MEMBER_ROLE.SALES_REP) {
         await prisma.teamMember.update({
           where: { id: newLeadId },
-          data: { role: "sales_lead" },
+          data: { role: MEMBER_ROLE.SALES_LEAD },
         });
       }
     }
   }
 
-  // ── Membership sync ──
   if (memberIds !== undefined) {
     if (memberIds.length > 0) {
       const valid = await prisma.teamMember.count({
-        where: { id: { in: memberIds }, companyId },
+        where: { id: { in: memberIds }, companyId: access.company.id },
       });
 
       if (valid !== memberIds.length) {
@@ -89,14 +73,20 @@ export async function PATCH(
       }
     }
 
-    const uniqueIds: string[] = [
-      ...new Set([...memberIds, ...(newLeadId ? [newLeadId] : [])]),
-    ];
+    const uniqueIds = [...new Set([...memberIds, ...(newLeadId ? [newLeadId] : [])])];
+    const currentIds = existing.memberships.map((membership) => membership.teamMemberId);
+    const toAdd = uniqueIds.filter((memberId: string) => !currentIds.includes(memberId));
+    const toRemove = currentIds.filter((memberId) => !uniqueIds.includes(memberId));
 
-    const currentIds = existing.memberships.map((m) => m.teamMemberId);
-
-    const toAdd = uniqueIds.filter((id) => !currentIds.includes(id));
-    const toRemove = currentIds.filter((id) => !uniqueIds.includes(id));
+    if (toAdd.length > 0) {
+      await prisma.teamMembership.deleteMany({
+        where: {
+          team: { companyId: access.company.id },
+          teamId: { not: id },
+          teamMemberId: { in: toAdd },
+        },
+      });
+    }
 
     if (toRemove.length > 0) {
       await prisma.teamMembership.deleteMany({
@@ -106,15 +96,20 @@ export async function PATCH(
 
     if (toAdd.length > 0) {
       await prisma.teamMembership.createMany({
-        data: toAdd.map((mid) => ({ teamId: id, teamMemberId: mid })),
+        data: toAdd.map((memberId: string) => ({ teamId: id, teamMemberId: memberId })),
       });
     }
   }
+
+  const nextKind = [TEAM_KIND.SALES, TEAM_KIND.LEAD_GEN, TEAM_KIND.REPS, TEAM_KIND.SUPPORT, TEAM_KIND.OPERATIONS].includes(kind)
+    ? kind
+    : existing.kind;
 
   const updated = await prisma.team.update({
     where: { id },
     data: {
       ...(name !== undefined && { name: name.trim() }),
+      ...(kind !== undefined && { kind: nextKind }),
       ...(description !== undefined && { description: description.trim() || null }),
       ...(color !== undefined && { color }),
       ...(teamLeadId !== undefined && { teamLeadId: teamLeadId || null }),
@@ -128,33 +123,30 @@ export async function PATCH(
   return NextResponse.json({
     id: updated.id,
     name: updated.name,
+    kind: updated.kind,
     description: updated.description ?? "",
     color: updated.color,
     teamLeadId: updated.teamLeadId ?? null,
     teamLead: updated.teamLead ?? null,
-    memberIds: updated.memberships.map((m) => m.teamMemberId),
+    memberIds: updated.memberships.map((membership) => membership.teamMemberId),
   });
 }
 
-// ── DELETE /api/teams/[id] ─────────────────────────────
 export async function DELETE(
   _req: NextRequest,
-  context: { params: Promise<{ id: string }> } // ✅ FIX
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await context.params; // ✅ FIX
-
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
+  const access = await resolveAccess(session);
+
+  if (!access || !access.company || !canManageWorkspace(access)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const companyId = await getCompanyId(session.user.email);
-  if (!companyId) {
-    return NextResponse.json({ error: "Company not found" }, { status: 404 });
-  }
+  const { id } = await context.params;
 
   const team = await prisma.team.findFirst({
-    where: { id, companyId },
+    where: { id, companyId: access.company.id },
   });
 
   if (!team) {
@@ -163,18 +155,17 @@ export async function DELETE(
 
   if (team.teamLeadId) {
     const otherTeams = await prisma.team.count({
-      where: { teamLeadId: team.teamLeadId, id: { not: id } },
+      where: { companyId: access.company.id, teamLeadId: team.teamLeadId, id: { not: id } },
     });
 
     if (otherTeams === 0) {
       await prisma.teamMember.updateMany({
-        where: { id: team.teamLeadId, role: "sales_lead" },
-        data: { role: "sales_rep" },
+        where: { id: team.teamLeadId, role: MEMBER_ROLE.SALES_LEAD },
+        data: { role: MEMBER_ROLE.SALES_REP },
       });
     }
   }
 
   await prisma.team.delete({ where: { id } });
-
   return NextResponse.json({ success: true });
 }

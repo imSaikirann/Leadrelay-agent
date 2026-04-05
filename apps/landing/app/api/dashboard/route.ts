@@ -5,14 +5,17 @@ import { withAuth } from "@/lib/middlewares/auth.middleware";
 import { withRateLimit } from "@/lib/middlewares/rate-limit.middleware";
 import { NextResponse } from "next/server";
 import { LEAD_RANK } from "@/lib/constants";
+import { buildWorkspaceSubmissionWhere } from "@/lib/workspace";
 
 const use = compose(withAuth, withRateLimit("authenticated"), withCompany);
 
-export const GET = use(async ({  company }) => {
-
+export const GET = use(async ({ req, company }) => {
+  const { searchParams } = new URL(req.url);
+  const workspaceId = searchParams.get("workspaceId");
+  const where = await buildWorkspaceSubmissionWhere(company!.id, workspaceId);
 
   const submissions = await prisma.formSubmission.findMany({
-    where: { companyId: company?.id },
+    where,
   });
 
   const total = submissions.length;
@@ -27,7 +30,7 @@ export const GET = use(async ({  company }) => {
 
 
   const recentLeads = await prisma.formSubmission.findMany({
-    where: { companyId: company?.id },
+    where,
     orderBy: { createdAt: "desc" },
     take: 5,
   });

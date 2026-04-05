@@ -8,6 +8,10 @@ interface CustomInputProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   className?: string;
+  spellCheck?: boolean;
+  autoCorrect?: "on" | "off";
+  autoCapitalize?: string;
+  autoComplete?: string;
 }
 
 export function CustomInput({
@@ -17,11 +21,16 @@ export function CustomInput({
   onChange,
   required,
   className = "",
+  spellCheck = false,
+  autoCorrect = "off",
+  autoCapitalize = "none",
+  autoComplete = "off",
 }: CustomInputProps) {
   const [focused, setFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const isActive = focused || value.length > 0;
+  const showFloatingLabel = focused && value.length === 0;
 
   return (
     <div
@@ -41,8 +50,10 @@ export function CustomInput({
         {/* Label */}
         <label
           className={`absolute left-4 font-mono text-[13px] transition-all duration-200 pointer-events-none ${
-            isActive
+            showFloatingLabel
               ? "top-[6px] scale-75 text-[#D4622A]"
+              : isActive
+              ? "top-[6px] scale-75 text-transparent"
               : "top-1/2 -translate-y-1/2 text-[#C4B9A8]"
           }`}
         >
@@ -58,6 +69,14 @@ export function CustomInput({
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           required={required}
+          spellCheck={spellCheck}
+          autoCorrect={autoCorrect}
+          autoCapitalize={autoCapitalize}
+          autoComplete={autoComplete}
+          data-gramm="false"
+          data-gramm_editor="false"
+          data-enable-grammarly="false"
+          data-lt-active="false"
           placeholder=""
           className="absolute inset-0 border-0 bg-transparent px-4 pt-6 pb-2 text-sm font-mono text-[#1A1714] shadow-none focus-visible:ring-0"
         />

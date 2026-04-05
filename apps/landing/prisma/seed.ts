@@ -39,23 +39,34 @@ async function main() {
 
   const { default: bcrypt } = await import("bcryptjs");
   const hashedPassword = await bcrypt.hash("superadmin_change_me", 12);
+  const seededCompanyId = process.env.SEED_COMPANY_ID ?? "000000000000000000000000";
+  const seededSuperAdminEmail = (process.env.SEED_SUPERADMIN_EMAIL ?? "superadmin@inboq.com")
+    .trim()
+    .toLowerCase();
 
   const superadmin = await prisma.teamMember.upsert({
     where: {
 
       companyId_email: {
-        companyId: process.env.SEED_COMPANY_ID ?? "000000000000000000000000",
-        email: process.env.SEED_SUPERADMIN_EMAIL ?? "superadmin@inboq.com",
+        companyId: seededCompanyId,
+        email: seededSuperAdminEmail,
       },
     },
-    update: {},
-    create: {
-      companyId: process.env.SEED_COMPANY_ID ?? "000000000000000000000000",
+    update: {
       name: "Super Admin",
-      email: process.env.SEED_SUPERADMIN_EMAIL ?? "superadmin@inboq.com",
       password: hashedPassword,
       role: "superadmin",
       seniority: "senior",
+      status: "active",
+    },
+    create: {
+      companyId: seededCompanyId,
+      name: "Super Admin",
+      email: seededSuperAdminEmail,
+      password: hashedPassword,
+      role: "superadmin",
+      seniority: "senior",
+      status: "active",
     },
   });
 

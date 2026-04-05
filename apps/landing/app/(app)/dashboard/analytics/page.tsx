@@ -2,6 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useAppStore } from "@/store/useAppStore";
+import { ALL_WORKSPACES_ID, FOUNDER_WORKSPACE_ID } from "@/lib/workspace";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -116,6 +118,7 @@ function Skeleton({ className }: { className?: string }) {
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function AnalyticsPage() {
+  const activeWorkspace = useAppStore((s) => s.activeWorkspace);
   const [kpis, setKpis] = useState<KPIs | null>(null);
   const [trend, setTrend] = useState<TrendPoint[]>([]);
   const [responseTimes, setResponseTimes] = useState<ResponseBucket[]>([]);
@@ -124,25 +127,34 @@ export default function AnalyticsPage() {
 
   // Fetch KPIs once
   useEffect(() => {
-    fetch("/api/analytics")
+    const workspaceQuery =
+      activeWorkspace === ALL_WORKSPACES_ID || activeWorkspace === FOUNDER_WORKSPACE_ID
+        ? ""
+        : `?workspaceId=${encodeURIComponent(activeWorkspace)}`;
+
+    fetch(`/api/analytics${workspaceQuery}`)
       .then((r) => r.json())
       .then(setKpis)
       .catch(console.error);
 
-    fetch("/api/analytics/response-time")
+    fetch(`/api/analytics/response-time${workspaceQuery}`)
       .then((r) => r.json())
       .then(setResponseTimes)
       .catch(console.error);
-  }, []);
+  }, [activeWorkspace]);
 
   // Fetch trend on period change
   useEffect(() => {
     setLoading(true);
-    fetch(`/api/analytics/trend?period=${period}`)
+    const params = new URLSearchParams({ period });
+    if (activeWorkspace !== ALL_WORKSPACES_ID && activeWorkspace !== FOUNDER_WORKSPACE_ID) {
+      params.set("workspaceId", activeWorkspace);
+    }
+    fetch(`/api/analytics/trend?${params.toString()}`)
       .then((r) => r.json())
       .then((d) => { setTrend(d.trend); setLoading(false); })
       .catch(console.error);
-  }, [period]);
+  }, [period, activeWorkspace]);
 
   return (
     <div className="px-4 sm:px-8 py-6 sm:py-8">
@@ -154,6 +166,9 @@ export default function AnalyticsPage() {
           Analytics
         </h1>
         <p className="text-sm text-[#9B8E7E] mt-1">Lead quality and team performance overview.</p>
+        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-[#C4B9A8] mt-2">
+          {activeWorkspace === ALL_WORKSPACES_ID ? "All workspaces" : activeWorkspace === FOUNDER_WORKSPACE_ID ? "Founder view" : "Selected workspace"}
+        </p>
       </div>
 
       {/* KPI cards */}

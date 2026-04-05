@@ -1,23 +1,38 @@
 // app/api/team/members/route.ts
-
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
+import { canAssignLeads, MEMBER_ROLE, resolveAccess } from "@/lib/access";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email || session.user.isMember)
+  const access = await resolveAccess(session);
+
+  if (!access || !access.company || !canAssignLeads(access))
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { company: true },
-  });
-  if (!user?.company) return NextResponse.json({ members: [] });
+  let allowedMemberIds: string[] | undefined;
+
+  if (access.role === MEMBER_ROLE.SALES_LEAD && access.member) {
+    const teams = await prisma.team.findMany({
+      where: {
+        companyId: access.company.id,
+        teamLeadId: access.member.id,
+      },
+      include: { memberships: { select: { teamMemberId: true } } },
+    });
+
+    allowedMemberIds = teams.flatMap((team) => team.memberships.map((membership) => membership.teamMemberId));
+  }
 
   const members = await prisma.teamMember.findMany({
-    where: { companyId: user.company.id, status: "active" },
+    where: {
+      companyId: access.company.id,
+      status: "active",
+      role: MEMBER_ROLE.SALES_REP,
+      ...(allowedMemberIds ? { id: { in: allowedMemberIds } } : {}),
+    },
     select: { id: true, name: true, role: true, activeLeads: true },
     orderBy: { name: "asc" },
   });

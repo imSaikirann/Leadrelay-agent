@@ -6,13 +6,16 @@ import { withAuth } from "@/lib/middlewares/auth.middleware";
 import { withRateLimit } from "@/lib/middlewares/rate-limit.middleware";
 import { withCompany } from "@/lib/middlewares/company.middleware";
 import { LEAD_RANK } from "@/lib/constants";
+import { buildWorkspaceSubmissionWhere } from "@/lib/workspace";
 
 const use = compose(withAuth, withRateLimit("authenticated"), withCompany);
 
-export const GET = use(async ({ company }: AppContext) => {
+export const GET = use(async ({ req, company }: AppContext) => {
+  const workspaceId = new URL(req.url).searchParams.get("workspaceId");
+  const workspaceWhere = await buildWorkspaceSubmissionWhere(company!.id, workspaceId);
   const called = await prisma.formSubmission.findMany({
     where: {
-      companyId: company!.id,
+      ...workspaceWhere,
       calledAt: { not: null },
       rank: LEAD_RANK.HOT,
     },

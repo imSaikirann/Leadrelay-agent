@@ -1,21 +1,16 @@
-
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { prisma } from "@/lib/prisma";
 import { dodo } from "@/lib/dodo";
-import { compose } from "@/lib/compose";
-import { withAuth } from "@/lib/middlewares/auth.middleware";
-import { withRateLimit } from "@/lib/middlewares/rate-limit.middleware";
-import { withCompany } from "@/lib/middlewares/company.middleware";
 
-
-const use = compose(withAuth, withRateLimit("authenticated"), withCompany);
-
-export async function POST() {
+export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email)
+  if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { planId } = (await req.json().catch(() => ({}))) as { planId?: string };
 
   const company = await prisma.company.findFirst({
     where: { user: { email: session.user.email } },
@@ -25,13 +20,23 @@ export async function POST() {
     },
   });
 
-  if (!company)
+  if (!company) {
     return NextResponse.json({ error: "Company not found" }, { status: 404 });
+  }
 
-  if (company.subscription?.status === "active")
-    return NextResponse.json({ error: "Already on an active plan" }, { status: 400 });
+  const selectedPlanId = planId ?? company.subscription?.planId ?? null;
+  if (!selectedPlanId) {
+    return NextResponse.json({ error: "Please select a plan first" }, { status: 400 });
+  }
 
-  // ── Get or create Dodo customer ──────────────────────────────────────────
+  const selectedPlan = await prisma.plan.findFirst({
+    where: { id: selectedPlanId, isActive: true },
+  });
+
+  if (!selectedPlan) {
+    return NextResponse.json({ error: "Selected plan is not available" }, { status: 400 });
+  }
+
   let dodoCustomerId = company.dodoCustomerId;
 
   if (!dodoCustomerId) {
@@ -39,6 +44,7 @@ export async function POST() {
       email: company.user.email!,
       name: company.user.name ?? company.name,
     });
+
     dodoCustomerId = customer.customer_id;
 
     await prisma.company.update({
@@ -47,13 +53,19 @@ export async function POST() {
     });
   }
 
-  // ── Create hosted checkout session ────────────────────────────────────────
-  // checkoutSessions.create → returns checkout_url (hosted Dodo checkout page)
-  // Do NOT use dodo.subscriptions.create — that's direct API, no hosted page.
+  const dodoProductId = selectedPlan.dodoPlanId;
+
+  if (!dodoProductId) {
+    return NextResponse.json(
+      { error: "This plan is missing a Dodo product id. Ask the super admin to configure it." },
+      { status: 400 }
+    );
+  }
+
   const checkoutSession = await dodo.checkoutSessions.create({
     product_cart: [
       {
-        product_id: "pdt_0NWgnI9j9j9beVwuX4qhY",
+        product_id: dodoProductId,
         quantity: 1,
       },
     ],
@@ -61,17 +73,21 @@ export async function POST() {
     return_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
     metadata: {
       companyId: company.id,
+      planId: selectedPlan.id,
     },
   });
 
-  if (!checkoutSession.checkout_url)
+  if (!checkoutSession.checkout_url) {
     return NextResponse.json({ error: "Failed to get checkout URL" }, { status: 500 });
+  }
 
-  // Store session_id temporarily (webhook will update with real subscription_id)
   if (company.subscription) {
     await prisma.subscription.update({
       where: { companyId: company.id },
-      data: { dodoSubscriptionId: checkoutSession.session_id },
+      data: {
+        dodoSubscriptionId: checkoutSession.session_id,
+        planId: selectedPlan.id,
+      },
     });
   }
 

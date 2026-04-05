@@ -1,37 +1,21 @@
-// app/api/plans/[id]/route.ts
-
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-
 import { prisma } from "@/lib/prisma";
-import { authOptions } from "../../auth/[...nextauth]/route";
+import { requireSuperAdminAccess } from "@/lib/admin-auth";
 
-async function requireSuperadmin(email: string) {
-  return prisma.teamMember.findFirst({
-    where: { email, role: "superadmin" },
-  });
-}
-
-// ─── PATCH ─────────────────────────────────────────────
 export async function PATCH(
   req: Request,
-  { params }: { params: Promise<{ id: string }> } // ✅ FIX
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params; // ✅ FIX
-
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!(await requireSuperadmin(session.user.email))) {
+  const access = await requireSuperAdminAccess();
+  if (!access) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  const { id } = await params;
   const body = await req.json();
-
   const {
     name,
+    dodoPlanId,
     priceMonthly,
     trialDays,
     maxLeads,
@@ -44,6 +28,7 @@ export async function PATCH(
     where: { id },
     data: {
       ...(name !== undefined && { name }),
+      ...(dodoPlanId !== undefined && { dodoPlanId: dodoPlanId?.trim() || null }),
       ...(priceMonthly !== undefined && { priceMonthly }),
       ...(trialDays !== undefined && { trialDays }),
       ...(maxLeads !== undefined && { maxLeads }),
@@ -56,21 +41,16 @@ export async function PATCH(
   return NextResponse.json(updated);
 }
 
-
 export async function DELETE(
   _req: Request,
-  { params }: { params: Promise<{ id: string }> } 
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params; 
-
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.email) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!(await requireSuperadmin(session.user.email))) {
+  const access = await requireSuperAdminAccess();
+  if (!access) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
+
+  const { id } = await params;
 
   await prisma.plan.update({
     where: { id },

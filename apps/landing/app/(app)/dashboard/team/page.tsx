@@ -1,7 +1,10 @@
 
 "use client";
  
-import { useState, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useAppStore } from "@/store/useAppStore";
+import { ALL_WORKSPACES_ID, FOUNDER_WORKSPACE_ID } from "@/lib/workspace";
  
 // ─── Types ────────────────────────────────────────────────────────────────────
  
@@ -22,6 +25,7 @@ type TeamMember = {
 type Team = {
   id: string;
   name: string;
+  kind: string;
   description: string;
   color: string;
   memberIds: string[];
@@ -40,6 +44,7 @@ type FormState = {
  
 type TeamFormState = {
   name: string;
+  kind: string;
   description: string;
   color: string;
   memberIds: string[];
@@ -71,11 +76,17 @@ const TEAM_COLORS = [
 ];
  
 const defaultForm: FormState = {
-  name: "", email: "", role: "Sales Rep", seniority: "junior", specialty: "",
+  name: "", email: "", role: "sales_rep", seniority: "junior", specialty: "",
 };
  
 const defaultTeamForm: TeamFormState = {
-  name: "", description: "", color: "#D4622A", memberIds: [],
+  name: "", kind: "sales", description: "", color: "#D4622A", memberIds: [],
+};
+
+const teamTypeLabels: Record<string, string> = {
+  sales: "Sales",
+  lead_gen: "Marketing",
+  reps: "Support",
 };
  
 // ─── Avatar helper ────────────────────────────────────────────────────────────
@@ -94,8 +105,14 @@ function Avatar({ name, size = "sm", color }: { name: string; size?: "sm" | "md"
  
 // ─── Main page ────────────────────────────────────────────────────────────────
  
-export default function TeamPage() {
-  const [activeTab, setActiveTab] = useState<"members" | "teams">("members");
+function TeamPageContent() {
+  const activeWorkspace = useAppStore((s) => s.activeWorkspace);
+  const searchParams = useSearchParams();
+  const requestedTab = searchParams.get("tab");
+  const shouldOpenNewWorkspace = searchParams.get("newWorkspace") === "1";
+  const [activeTab, setActiveTab] = useState<"members" | "teams">(
+    requestedTab === "teams" ? "teams" : "members"
+  );
  
   // Members state
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -112,6 +129,7 @@ export default function TeamPage() {
   const [showTeamModal, setShowTeamModal] = useState(false);
   const [teamSaving, setTeamSaving] = useState(false);
   const [teamError, setTeamError] = useState("");
+  const [subscriptionStatus, setSubscriptionStatus] = useState<string>("");
   const [teamForm, setTeamForm] = useState<TeamFormState>(defaultTeamForm);
   const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
@@ -132,6 +150,13 @@ export default function TeamPage() {
       .then((r) => r.json())
       .then((data) => { setTeams(Array.isArray(data) ? data : []); setTeamsLoading(false); })
       .catch(() => setTeamsLoading(false));
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/subscription")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => setSubscriptionStatus(data?.status ?? ""))
+      .catch(() => {});
   }, []);
  
   // ── Member actions
@@ -190,15 +215,34 @@ export default function TeamPage() {
     setEditingTeam(null);
     setTeamForm(defaultTeamForm);
     setTeamError("");
+    setActiveTab("teams");
+
+    if (subscriptionStatus === "trial" && teams.length >= 1) {
+      setTeamError("Free trial allows only one workspace. Upgrade to Pro to create multiple workspaces.");
+    }
+
     setShowTeamModal(true);
   };
  
   const openEditTeam = (team: Team) => {
     setEditingTeam(team);
-    setTeamForm({ name: team.name, description: team.description, color: team.color, memberIds: team.memberIds });
+    setTeamForm({ name: team.name, kind: team.kind, description: team.description, color: team.color, memberIds: team.memberIds });
     setTeamError("");
+    setActiveTab("teams");
     setShowTeamModal(true);
   };
+
+  useEffect(() => {
+    if (requestedTab === "teams") {
+      setActiveTab("teams");
+    }
+  }, [requestedTab]);
+
+  useEffect(() => {
+    if (shouldOpenNewWorkspace) {
+      openCreateTeam();
+    }
+  }, [shouldOpenNewWorkspace]);
  
   const handleSaveTeam = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,7 +263,10 @@ export default function TeamPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(teamForm),
         });
-        if (!res.ok) throw new Error("Failed to create team");
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error ?? "Failed to create team");
+        }
         const newTeam = await res.json();
         setTeams((prev) => [...prev, newTeam]);
       }
@@ -249,6 +296,27 @@ export default function TeamPage() {
   };
  
   const getMemberById = (id: string) => members.find((m) => m.id === id);
+  const showWorkspaceUpgradeNotice =
+    teamError.toLowerCase().includes("free trial allows only one workspace") ||
+    teamError.toLowerCase().includes("create another workspace");
+
+  const isWorkspaceScoped =
+    activeWorkspace !== ALL_WORKSPACES_ID && activeWorkspace !== FOUNDER_WORKSPACE_ID;
+  const visibleTeams = isWorkspaceScoped
+    ? teams.filter((team) => team.id === activeWorkspace)
+    : teams;
+  const visibleMemberIds = new Set(visibleTeams.flatMap((team) => team.memberIds));
+  const visibleMembers = isWorkspaceScoped
+    ? members.filter((member) => visibleMemberIds.has(member.id))
+    : members;
+  const selectableMembers = editingTeam
+    ? members.filter((member) => {
+        const assignedElsewhere = teams.some(
+          (team) => team.id !== editingTeam.id && team.memberIds.includes(member.id)
+        );
+        return !assignedElsewhere || editingTeam.memberIds.includes(member.id);
+      })
+    : members.filter((member) => !teams.some((team) => team.memberIds.includes(member.id)));
  
   const getTeamStats = (team: Team) => {
     const teamMembers = team.memberIds.map(getMemberById).filter(Boolean) as TeamMember[];
@@ -274,7 +342,7 @@ export default function TeamPage() {
             Team
           </h1>
           <p className="text-sm text-[#9B8E7E] mt-1">
-            Manage members, create teams and assign leads.
+            Manage members, create sales, marketing, and support teams from one workspace.
           </p>
         </div>
  
@@ -297,6 +365,23 @@ export default function TeamPage() {
           )}
         </div>
       </div>
+
+      {activeTab === "teams" && subscriptionStatus === "trial" && teams.length >= 1 && (
+        <div className="mb-6 rounded-2xl border border-[#F4C5AE] bg-[#FFF5F0] p-4">
+          <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-[#D4622A]">
+            Trial limit
+          </p>
+          <p className="mt-2 text-sm text-[#1A1714]">
+            Your free trial includes only one workspace. Upgrade to <span className="font-medium">Pro</span> to create multiple workspaces.
+          </p>
+          <a
+            href="/dashboard/profile"
+            className="mt-3 inline-flex rounded-xl bg-[#1A1714] px-3 py-2 text-xs font-mono text-white transition-colors hover:bg-[#2C2825]"
+          >
+            Upgrade to Pro
+          </a>
+        </div>
+      )}
  
       {/* Tabs */}
       <div className="flex items-center gap-1 mb-6 bg-[#F0EDE6] rounded-xl p-1 w-fit">
@@ -312,7 +397,7 @@ export default function TeamPage() {
           >
             {tab}
             <span className={`ml-1.5 text-[10px] ${activeTab === tab ? "text-[#D4622A]" : "text-[#C4B9A8]"}`}>
-              {tab === "members" ? members.length : teams.length}
+              {tab === "members" ? visibleMembers.length : visibleTeams.length}
             </span>
           </button>
         ))}
@@ -324,9 +409,9 @@ export default function TeamPage() {
           {/* Summary cards */}
           <div className="grid grid-cols-3 gap-3 mb-8">
             {[
-              { label: "Active now", value: members.filter((m) => m.status === "active").length, color: "text-green-600" },
-              { label: "Total leads", value: members.reduce((a, m) => a + m.leads, 0), color: "text-[#1A1714]" },
-              { label: "Converted", value: members.reduce((a, m) => a + m.converted, 0), color: "text-[#D4622A]" },
+              { label: "Active now", value: visibleMembers.filter((m) => m.status === "active").length, color: "text-green-600" },
+              { label: "Total leads", value: visibleMembers.reduce((a, m) => a + m.leads, 0), color: "text-[#1A1714]" },
+              { label: "Converted", value: visibleMembers.reduce((a, m) => a + m.converted, 0), color: "text-[#D4622A]" },
             ].map((s) => (
               <div key={s.label} className="bg-white border border-[#E8E2D9] rounded-2xl px-4 py-4">
                 <p className="text-xs text-[#9B8E7E] font-mono mb-1">{s.label}</p>
@@ -339,7 +424,7 @@ export default function TeamPage() {
             <div className="text-center py-16 text-sm text-[#9B8E7E] font-mono">Loading members...</div>
           )}
  
-          {!membersLoading && members.length === 0 && (
+          {!membersLoading && visibleMembers.length === 0 && (
             <div className="text-center py-16 border border-dashed border-[#E8E2D9] rounded-2xl">
               <p className="text-sm text-[#9B8E7E] font-mono">No team members yet.</p>
               <button onClick={() => setShowMemberModal(true)} className="mt-3 text-xs text-[#D4622A] font-mono hover:underline">
@@ -349,7 +434,7 @@ export default function TeamPage() {
           )}
  
           {/* Desktop table */}
-          {!membersLoading && members.length > 0 && (
+          {!membersLoading && visibleMembers.length > 0 && (
             <div className="hidden sm:block bg-white border border-[#E8E2D9] rounded-2xl overflow-hidden">
               <table className="w-full">
                 <thead>
@@ -360,12 +445,12 @@ export default function TeamPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {members.map((member) => {
+                  {visibleMembers.map((member) => {
                     const s = statusConfig[member.status as keyof typeof statusConfig] ?? statusConfig.offline;
                     const sen = seniorityColors[member.seniority as keyof typeof seniorityColors] ?? seniorityColors.junior;
                     const convRate = member.leads > 0 ? Math.round((member.converted / member.leads) * 100) : 0;
                     // Find teams this member belongs to
-                    const memberTeams = teams.filter((t) => t.memberIds.includes(member.id));
+                    const memberTeams = visibleTeams.filter((t) => t.memberIds.includes(member.id));
  
                     return (
                       <tr key={member.id} className="border-b border-[#E8E2D9] last:border-0 hover:bg-[#FAF9F6] transition-colors">
@@ -453,13 +538,13 @@ export default function TeamPage() {
           )}
  
           {/* Mobile cards */}
-          {!membersLoading && members.length > 0 && (
+          {!membersLoading && visibleMembers.length > 0 && (
             <div className="flex flex-col gap-3 sm:hidden">
-              {members.map((member) => {
+              {visibleMembers.map((member) => {
                 const s = statusConfig[member.status as keyof typeof statusConfig] ?? statusConfig.offline;
                 const sen = seniorityColors[member.seniority as keyof typeof seniorityColors] ?? seniorityColors.junior;
                 const convRate = member.leads > 0 ? Math.round((member.converted / member.leads) * 100) : 0;
-                const memberTeams = teams.filter((t) => t.memberIds.includes(member.id));
+                const memberTeams = visibleTeams.filter((t) => t.memberIds.includes(member.id));
  
                 return (
                   <div key={member.id} className="bg-white border border-[#E8E2D9] rounded-2xl px-4 py-4">
@@ -526,9 +611,9 @@ export default function TeamPage() {
           {/* Teams summary */}
           <div className="grid grid-cols-3 gap-3 mb-8">
             {[
-              { label: "Total teams", value: teams.length, color: "text-[#1A1714]" },
-              { label: "Members assigned", value: [...new Set(teams.flatMap((t) => t.memberIds))].length, color: "text-[#D4622A]" },
-              { label: "Unassigned", value: members.filter((m) => !teams.some((t) => t.memberIds.includes(m.id))).length, color: "text-amber-600" },
+              { label: "Total teams", value: visibleTeams.length, color: "text-[#1A1714]" },
+              { label: "Members assigned", value: [...new Set(visibleTeams.flatMap((t) => t.memberIds))].length, color: "text-[#D4622A]" },
+              { label: "Unassigned", value: visibleMembers.filter((m) => !visibleTeams.some((t) => t.memberIds.includes(m.id))).length, color: "text-amber-600" },
             ].map((s) => (
               <div key={s.label} className="bg-white border border-[#E8E2D9] rounded-2xl px-4 py-4">
                 <p className="text-xs text-[#9B8E7E] font-mono mb-1">{s.label}</p>
@@ -541,7 +626,7 @@ export default function TeamPage() {
             <div className="text-center py-16 text-sm text-[#9B8E7E] font-mono">Loading teams...</div>
           )}
  
-          {!teamsLoading && teams.length === 0 && (
+          {!teamsLoading && visibleTeams.length === 0 && (
             <div className="text-center py-16 border border-dashed border-[#E8E2D9] rounded-2xl">
               <p className="text-sm text-[#9B8E7E] font-mono">No teams yet.</p>
               <button onClick={openCreateTeam} className="mt-3 text-xs text-[#D4622A] font-mono hover:underline">
@@ -550,9 +635,9 @@ export default function TeamPage() {
             </div>
           )}
  
-          {!teamsLoading && teams.length > 0 && (
+          {!teamsLoading && visibleTeams.length > 0 && (
             <div className="flex flex-col gap-4">
-              {teams.map((team) => {
+              {visibleTeams.map((team) => {
                 const { totalLeads, totalConverted, activeCount, convRate, teamMembers } = getTeamStats(team);
                 const isExpanded = expandedTeam === team.id;
  
@@ -725,7 +810,6 @@ export default function TeamPage() {
                   {[
                     { label: "Full name", key: "name", type: "text", placeholder: "Arjun Mehta" },
                     { label: "Email", key: "email", type: "email", placeholder: "arjun@company.com" },
-                    { label: "Role", key: "role", type: "text", placeholder: "Sales Rep" },
                     { label: "Specialty", key: "specialty", type: "text", placeholder: "SaaS, EdTech..." },
                   ].map((field) => (
                     <div key={field.key} className="flex flex-col gap-1.5">
@@ -740,6 +824,19 @@ export default function TeamPage() {
                       />
                     </div>
                   ))}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-xs font-mono text-[#9B8E7E]">Role</label>
+                    <select
+                      value={memberForm.role}
+                      onChange={(e) => setMemberForm((f) => ({ ...f, role: e.target.value }))}
+                      className="bg-[#FAF9F6] border border-[#E8E2D9] rounded-xl px-4 py-3 text-sm text-[#1A1714] font-mono outline-none focus:border-[#D4622A] transition-colors"
+                    >
+                      <option value="sales_rep">Sales rep</option>
+                      <option value="sales_lead">Sales lead</option>
+                      <option value="lead_gen">Marketing / forms</option>
+                      <option value="admin">Admin</option>
+                    </select>
+                  </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-xs font-mono text-[#9B8E7E]">Seniority</label>
                     <div className="grid grid-cols-3 gap-2">
@@ -784,7 +881,7 @@ export default function TeamPage() {
               {editingTeam ? "Edit team" : "Create team"}
             </h2>
             <p className="text-xs text-[#9B8E7E] font-mono mb-6">
-              {editingTeam ? "Update team details and members." : "Group your reps into a focused team."}
+              {editingTeam ? "Update workspace details and members." : "Create a workspace for sales, marketing, support, or operations."}
             </p>
  
             <form onSubmit={handleSaveTeam} className="flex flex-col gap-5">
@@ -800,7 +897,21 @@ export default function TeamPage() {
                   className="bg-[#FAF9F6] border border-[#E8E2D9] rounded-xl px-4 py-3 text-sm text-[#1A1714] font-mono outline-none focus:border-[#D4622A] transition-colors"
                 />
               </div>
- 
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-mono text-[#9B8E7E]">Team type</label>
+                <select
+                  value={teamForm.kind}
+                  onChange={(e) => setTeamForm((f) => ({ ...f, kind: e.target.value }))}
+                  className="bg-[#FAF9F6] border border-[#E8E2D9] rounded-xl px-4 py-3 text-sm text-[#1A1714] font-mono outline-none focus:border-[#D4622A] transition-colors"
+                >
+                  <option value="sales">Sales</option>
+                  <option value="lead_gen">Marketing</option>
+                  <option value="reps">Support</option>
+                  <option value="operations">Operations</option>
+                </select>
+              </div>
+
               {/* Description */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-mono text-[#9B8E7E]">Description <span className="text-[#C4B9A8]">(optional)</span></label>
@@ -843,11 +954,11 @@ export default function TeamPage() {
                 <label className="text-xs font-mono text-[#9B8E7E]">
                   Members <span className="text-[#C4B9A8]">({teamForm.memberIds.length} selected)</span>
                 </label>
-                {members.length === 0 ? (
+                    {selectableMembers.length === 0 ? (
                   <p className="text-xs text-[#C4B9A8] font-mono py-2">No members yet. Add members first.</p>
                 ) : (
                   <div className="flex flex-col gap-1 max-h-48 overflow-y-auto border border-[#E8E2D9] rounded-xl p-2">
-                    {members.map((member) => {
+                    {selectableMembers.map((member) => {
                       const selected = teamForm.memberIds.includes(member.id);
                       const s = statusConfig[member.status as keyof typeof statusConfig] ?? statusConfig.offline;
                       return (
@@ -888,7 +999,35 @@ export default function TeamPage() {
                 )}
               </div>
  
-              {teamError && <p className="text-xs text-red-500 font-mono">{teamError}</p>}
+              {teamError && !showWorkspaceUpgradeNotice && (
+                <p className="text-xs text-red-500 font-mono">{teamError}</p>
+              )}
+
+              {showWorkspaceUpgradeNotice && (
+                <div className="rounded-2xl border border-[#F4C5AE] bg-[#FFF5F0] p-4">
+                  <p className="text-[10px] font-mono uppercase tracking-[0.22em] text-[#D4622A]">
+                    Upgrade required
+                  </p>
+                  <p className="mt-2 text-sm text-[#1A1714]">
+                    Free trial includes only one workspace. Upgrade to <span className="font-medium">Pro</span> to create multiple workspaces.
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <a
+                      href="/dashboard/profile"
+                      className="rounded-xl bg-[#1A1714] px-3 py-2 text-xs font-mono text-white transition-colors hover:bg-[#2C2825]"
+                    >
+                      Upgrade to Pro
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => setTeamError("")}
+                      className="rounded-xl border border-[#E8E2D9] bg-white px-3 py-2 text-xs font-mono text-[#6E6253] transition-colors hover:border-[#C4B9A8]"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                </div>
+              )}
  
               <div className="flex gap-3 mt-1">
                 <button
@@ -917,6 +1056,22 @@ export default function TeamPage() {
 // ─── Team Lead Assigner sub-component ────────────────────────────────────────
 // Drop-in inside expanded team panel. Wire to your lead assignment API.
  
+export default function TeamPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="px-4 py-6 sm:px-8 sm:py-8">
+          <div className="rounded-2xl border border-[#E8E2D9] bg-white px-4 py-6 text-sm font-mono text-[#9B8E7E] dark:border-white/10 dark:bg-[#171717] dark:text-[#A99C8B]">
+            Loading team workspace...
+          </div>
+        </div>
+      }
+    >
+      <TeamPageContent />
+    </Suspense>
+  );
+}
+
 function TeamLeadAssigner({ team, members }: { team: Team; members: TeamMember[] }) {
   const [leadId, setLeadId] = useState("");
   const [assignTo, setAssignTo] = useState("");

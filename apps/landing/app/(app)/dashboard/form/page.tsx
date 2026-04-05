@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { Link2, Code2, Eye, Copy, Check, Plus, Trash2, GripVertical, Save } from "lucide-react";
+import { useAppStore } from "@/store/useAppStore";
+import { ALL_WORKSPACES_ID, FOUNDER_WORKSPACE_ID } from "@/lib/workspace";
 
 type FieldType = "text" | "email" | "phone" | "select" | "textarea";
 
@@ -33,6 +35,7 @@ interface BusinessField {
 type Tab = "builder" | "preview" | "share";
 
 export default function FormPage() {
+  const activeWorkspace = useAppStore((s) => s.activeWorkspace);
   const [tab, setTab] = useState<Tab>("builder");
   const [fields, setFields] = useState<FormField[]>([]);
   const [defaultFields, setDefaultFields] = useState<FormField[]>([]);
@@ -71,7 +74,12 @@ export default function FormPage() {
 
   // Load forms + company slug
   useEffect(() => {
-    fetch("/api/form")
+    const workspaceQuery =
+      activeWorkspace === ALL_WORKSPACES_ID || activeWorkspace === FOUNDER_WORKSPACE_ID
+        ? ""
+        : `?workspaceId=${encodeURIComponent(activeWorkspace)}`;
+
+    fetch(`/api/form${workspaceQuery}`)
       .then((r) => r.json())
       .then((data) => {
         const list = Array.isArray(data) ? data : [];
@@ -90,7 +98,7 @@ export default function FormPage() {
         if (data?.name) setCompanySlug(data.name.toLowerCase().replace(/\s+/g, "-"));
       })
       .catch(() => {});
-  }, []);
+  }, [activeWorkspace, defaultFields]);
 
   const activeForm = forms.find((f) => f.id === activeFormId);
   const formLink = `${typeof window !== "undefined" ? window.location.origin : ""}/f/${companySlug}/${activeForm?.slug ?? ""}`;
@@ -109,6 +117,9 @@ export default function FormPage() {
       body: JSON.stringify({
         name: newFormName || "Untitled Form",
         fields: defaultFields, // seeded from BusinessField
+        ...(activeWorkspace !== ALL_WORKSPACES_ID && activeWorkspace !== FOUNDER_WORKSPACE_ID
+          ? { teamId: activeWorkspace }
+          : {}),
       }),
     });
     const newForm = await res.json();

@@ -5,6 +5,7 @@ import { useSession, signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import { CustomButton } from "./CustomButton";
 import { Building, LogOut, SettingsIcon } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
@@ -29,7 +30,7 @@ export default function Navbar() {
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
-  const hiddenRoutes = ["/f", "/login", "/rep", "/auth-redirect", "/onboarding"];
+  const hiddenRoutes = ["/f", "/login", "/rep", "/auth-redirect", "/onboarding", "/dashboard", "/admin"];
   const shouldHide = hiddenRoutes.some((route) => route && pathname.startsWith(route));
   if (shouldHide) return null;
 
@@ -56,6 +57,7 @@ export default function Navbar() {
       </span>
 
       <div className="flex items-center gap-6">
+        <ThemeToggle />
         {session?.user ? (
           <div className="relative" ref={dropdownRef}>
             <button

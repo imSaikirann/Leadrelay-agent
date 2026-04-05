@@ -1,33 +1,19 @@
-// app/api/teams/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "../auth/[...nextauth]/route";
+import { canManageWorkspace, MEMBER_ROLE, resolveAccess, TEAM_KIND } from "@/lib/access";
 
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-async function getCompanyId(email: string): Promise<string | null> {
-  const company = await prisma.company.findFirst({
-    where: { user: { email } },
-    select: { id: true },
-  });
-  return company?.id ?? null;
-}
-
-// ── GET /api/teams ─────────────────────────────────────────────────────────
-// Returns all teams for the caller's workspace.
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const access = await resolveAccess(session);
 
-  const companyId = await getCompanyId(session.user.email);
-  if (!companyId)
-    return NextResponse.json({ error: "Company not found" }, { status: 404 });
+  if (!access || !access.company || !canManageWorkspace(access)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
 
   const teams = await prisma.team.findMany({
-    where: { companyId },
+    where: { companyId: access.company.id },
     include: {
       teamLead: {
         select: { id: true, name: true, email: true, role: true, status: true },
@@ -36,8 +22,16 @@ export async function GET() {
         include: {
           member: {
             select: {
-              id: true, name: true, email: true, role: true, seniority: true,
-              status: true, activeLeads: true, leads: true, converted: true,
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+              seniority: true,
+              specialty: true,
+              status: true,
+              activeLeads: true,
+              leads: true,
+              converted: true,
               avgResponseTime: true,
             },
           },
@@ -48,73 +42,103 @@ export async function GET() {
   });
 
   return NextResponse.json(
-    teams.map((t) => ({
-      id: t.id,
-      name: t.name,
-      description: t.description ?? "",
-      color: t.color,
-      teamLeadId: t.teamLeadId ?? null,
-      teamLead: t.teamLead ?? null,
-      memberIds: t.memberships.map((m) => m.teamMemberId),
-      members: t.memberships.map((m) => m.member),
-      createdAt: t.createdAt,
+    teams.map((team) => ({
+      id: team.id,
+      name: team.name,
+      kind: team.kind,
+      description: team.description ?? "",
+      color: team.color,
+      teamLeadId: team.teamLeadId ?? null,
+      teamLead: team.teamLead ?? null,
+      memberIds: team.memberships.map((membership) => membership.teamMemberId),
+      members: team.memberships.map((membership) => membership.member),
+      createdAt: team.createdAt,
     }))
   );
 }
 
-// ── POST /api/teams ────────────────────────────────────────────────────────
-// Body: { name, description?, color?, teamLeadId?, memberIds: string[] }
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.email)
+  const access = await resolveAccess(session);
+
+  if (!access || !access.company || !canManageWorkspace(access)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const companyId = await getCompanyId(session.user.email);
-  if (!companyId)
-    return NextResponse.json({ error: "Company not found" }, { status: 404 });
-
-  const { name, description, color, teamLeadId, memberIds = [] } = await req.json();
-
-  if (!name?.trim())
-    return NextResponse.json({ error: "Team name is required" }, { status: 400 });
-
-  // Validate all memberIds belong to this company
-  if (memberIds.length > 0) {
-    const valid = await prisma.teamMember.count({
-      where: { id: { in: memberIds }, companyId },
-    });
-    if (valid !== memberIds.length)
-      return NextResponse.json({ error: "One or more members not found" }, { status: 400 });
   }
 
-  // Validate + promote teamLead
+  const { name, description, color, kind, teamLeadId, memberIds = [] } = await req.json();
+
+  if (!name?.trim()) {
+    return NextResponse.json({ error: "Team name is required" }, { status: 400 });
+  }
+
+  const existingTeamsCount = await prisma.team.count({
+    where: { companyId: access.company.id },
+  });
+
+  const subscription = await prisma.subscription.findUnique({
+    where: { companyId: access.company.id },
+    select: { status: true },
+  });
+
+  if (subscription?.status === "trial" && existingTeamsCount >= 1) {
+    return NextResponse.json(
+      { error: "Free trial allows only one workspace. Upgrade your plan to create another workspace." },
+      { status: 403 }
+    );
+  }
+
+  const teamKind = [TEAM_KIND.SALES, TEAM_KIND.LEAD_GEN, TEAM_KIND.REPS, TEAM_KIND.SUPPORT, TEAM_KIND.OPERATIONS].includes(kind)
+    ? kind
+    : TEAM_KIND.SALES;
+
+  if (memberIds.length > 0) {
+    const valid = await prisma.teamMember.count({
+      where: { id: { in: memberIds }, companyId: access.company.id },
+    });
+
+    if (valid !== memberIds.length) {
+      return NextResponse.json({ error: "One or more members not found" }, { status: 400 });
+    }
+  }
+
   if (teamLeadId) {
     const lead = await prisma.teamMember.findFirst({
-      where: { id: teamLeadId, companyId },
+      where: { id: teamLeadId, companyId: access.company.id },
     });
-    if (!lead)
-      return NextResponse.json({ error: "Team lead not found" }, { status: 400 });
 
-    if (lead.role === "sales_rep") {
+    if (!lead) {
+      return NextResponse.json({ error: "Team lead not found" }, { status: 400 });
+    }
+
+    if (lead.role === MEMBER_ROLE.SALES_REP) {
       await prisma.teamMember.update({
         where: { id: teamLeadId },
-        data: { role: "sales_lead" },
+        data: { role: MEMBER_ROLE.SALES_LEAD },
       });
     }
   }
 
-  // Always include teamLead in memberships
-  const uniqueIds: string[] = [...new Set([...memberIds, ...(teamLeadId ? [teamLeadId] : [])])];
+  const uniqueIds = [...new Set([...memberIds, ...(teamLeadId ? [teamLeadId] : [])])];
+
+  if (uniqueIds.length > 0) {
+    await prisma.teamMembership.deleteMany({
+      where: {
+        team: { companyId: access.company.id },
+        teamMemberId: { in: uniqueIds },
+      },
+    });
+  }
 
   const team = await prisma.team.create({
     data: {
-      companyId,
+      companyId: access.company.id,
       name: name.trim(),
+      kind: teamKind,
       description: description?.trim() ?? null,
       color: color ?? "#D4622A",
       teamLeadId: teamLeadId ?? null,
       memberships: {
-        create: uniqueIds.map((mid) => ({ teamMemberId: mid })),
+        create: uniqueIds.map((memberId: string) => ({ teamMemberId: memberId })),
       },
     },
     include: {
@@ -127,11 +151,12 @@ export async function POST(req: Request) {
     {
       id: team.id,
       name: team.name,
+      kind: team.kind,
       description: team.description ?? "",
       color: team.color,
       teamLeadId: team.teamLeadId ?? null,
       teamLead: team.teamLead ?? null,
-      memberIds: team.memberships.map((m) => m.teamMemberId),
+      memberIds: team.memberships.map((membership) => membership.teamMemberId),
       createdAt: team.createdAt,
     },
     { status: 201 }

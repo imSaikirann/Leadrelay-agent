@@ -5,7 +5,8 @@ import { compose, AppContext } from "@/lib/compose";
 import { withAuth } from "@/lib/middlewares/auth.middleware";
 import { withRateLimit } from "@/lib/middlewares/rate-limit.middleware";
 import { withCompany } from "@/lib/middlewares/company.middleware";
-import { startOfDay, startOfWeek, startOfMonth, subDays, subMonths, format } from "date-fns";
+import { startOfWeek, subDays, subMonths, format } from "date-fns";
+import { buildWorkspaceSubmissionWhere } from "@/lib/workspace";
 
 const use = compose(withAuth, withRateLimit("authenticated"), withCompany);
 
@@ -50,6 +51,7 @@ function groupByPeriod(
 export const GET = use(async ({ req, company }: AppContext) => {
   const { searchParams } = new URL(req.url);
   const period = (searchParams.get("period") ?? "daily") as "daily" | "weekly" | "monthly";
+  const workspaceId = searchParams.get("workspaceId");
 
   // Date range based on period
   const now = new Date();
@@ -58,9 +60,11 @@ export const GET = use(async ({ req, company }: AppContext) => {
   else if (period === "weekly") since = subDays(now, 56); // last 8 weeks
   else since = subMonths(now, 12);                        // last 12 months
 
+  const workspaceWhere = await buildWorkspaceSubmissionWhere(company!.id, workspaceId);
+
   const submissions = await prisma.formSubmission.findMany({
     where: {
-      companyId: company!.id,
+      ...workspaceWhere,
       createdAt: { gte: since },
     },
     select: { createdAt: true, rank: true },

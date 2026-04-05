@@ -1,16 +1,14 @@
-
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { Middleware } from "@/lib/compose";
+import { resolveAccess } from "@/lib/access";
 
 export const withCompany: Middleware = async (ctx, next) => {
-  const user = await prisma.user.findUnique({
-    where: { email: ctx.session!.user!.email! },
-    include: { company: true },
-  });
-  if (!user?.company) {
+  const access = await resolveAccess(ctx.session ?? null);
+
+  if (!access?.company) {
     return NextResponse.json({ error: "No company found" }, { status: 403 });
   }
-  ctx.company = user.company;
+
+  ctx.company = access.company;
   return next();
 };
