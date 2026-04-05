@@ -66,7 +66,7 @@ export async function GET() {
 
   try {
     const stats = await prisma.$runCommandRaw({ dbStats: 1, scale: 1 });
-    dbStats = (stats as typeof dbStats) ?? null;
+    dbStats = (stats as unknown as NonNullable<typeof dbStats>) ?? null;
   } catch {
     dbStats = null;
   }
