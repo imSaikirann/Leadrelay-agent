@@ -57,7 +57,7 @@ export default function Waitlist() {
           >
             Be the first to know
             <br />
-            when <em className="text-[#D4622A]">Inboq</em> launches.
+            when <em className="text-[#D4622A]">Foundhub</em> launches.
           </h2>
 
           <p className="text-[#9B8E7E] text-base leading-relaxed mb-10 max-w-lg mx-auto">
@@ -104,7 +104,7 @@ export default function Waitlist() {
                 You're in, {name}.
               </p>
               <p className="text-sm text-[#9B8E7E]">
-                We'll email you the moment Inboq is ready. You're early , that means you'll shape what this becomes.
+                We'll email you the moment Foundhub is ready. You're early , that means you'll shape what this becomes.
               </p>
             </div>
           )}

@@ -4,6 +4,8 @@ import Footer from "@/components/landing/Footer";
 import Features from "@/components/landing/Features";
 import Hero from "@/components/landing/Hero";
 import HowItWorks from "@/components/landing/Step";
+import Pricing from "@/components/landing/Pricing";
+import WorkspaceDiagram from "@/components/landing/WorkspaceDiagram";
 
 import SocialProof from "@/components/landing/SocialProof";
 import FAQ from "@/components/landing/FAQ";
@@ -17,7 +19,9 @@ export default function LandingPage() {
     
       <SocialProof />    
       <HowItWorks />
+      <WorkspaceDiagram />
       <Features />
+      <Pricing />
       <FAQ />             
       {/* <Waitlist/> */}
       <Footer />

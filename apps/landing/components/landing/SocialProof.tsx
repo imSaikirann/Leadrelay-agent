@@ -33,7 +33,7 @@ export default function SocialProof() {
             style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
           >
             "We were spending 2 hours a day chasing leads that were never going to buy.
-            Inboq fixes exactly that."
+            Foundhub fixes exactly that."
           </p>
           <p className="text-xs text-[#9B8E7E] mt-4 font-mono">
             — Early beta user, EdTech startup

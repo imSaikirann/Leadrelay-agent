@@ -36,7 +36,7 @@ export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const page = pageTitles[pathname] ?? { title: "Inboq", sub: "" };
+  const page = pageTitles[pathname] ?? { title: "Foundhub", sub: "" };
 
   useEffect(() => {
     if (company?.name) {

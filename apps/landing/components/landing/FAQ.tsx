@@ -5,7 +5,7 @@ import { useState, useRef, useEffect } from "react";
 const faqs = [
   {
     q: "Does this work with my existing form?",
-    a: "Yes. Inboq has an embeddable form you drop on any page with one script tag. You don't need to replace anything — just add it where you want leads to come in.",
+    a: "Yes. Foundhub has an embeddable form you drop on any page with one script tag. You don't need to replace anything — just add it where you want leads to come in.",
   },
   {
     q: "What happens to warm and cold leads?",
@@ -13,7 +13,7 @@ const faqs = [
   },
   {
     q: "How is this different from HubSpot?",
-    a: "HubSpot scores leads based on job title, company size, and page visits. Inboq reads what the lead actually wrote — their intent, urgency, and timeline in their own words. It's faster to set up and built for small teams, not enterprise.",
+    a: "HubSpot scores leads based on job title, company size, and page visits. Foundhub reads what the lead actually wrote — their intent, urgency, and timeline in their own words. It's faster to set up and built for small teams, not enterprise.",
   },
   {
     q: "How accurate is the AI scoring?",

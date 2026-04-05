@@ -33,7 +33,7 @@ export default function DashboardLayout({
         <div className="flex shrink-0 items-center justify-between border-b border-[#E8E2D9] bg-[#FAF9F6]/95 px-4 py-4 dark:border-white/10 dark:bg-[#111111]/95 lg:hidden">
           <div>
             <p className="font-mono text-sm font-medium text-[#1A1714] dark:text-[#F5F1EB]">
-              lead<span className="text-[#D4622A]">IQ</span>
+              Found<span className="text-[#D4622A]">hub</span>
             </p>
             <p className="mt-1 text-[10px] uppercase tracking-[0.26em] text-[#9B8E7E] dark:text-[#A99C8B]">
               Founder control center

@@ -29,21 +29,21 @@ export default function HowItWorks() {
   const steps = [
     {
       number: "01",
-      title: "They tell you what they want.",
+      title: "Set up forms and workspaces once.",
       description:
-        "Your form asks one extra question: what's your goal? That single field is where real buying intent lives. Not job titles. Not company size. Their own words.",
+        "Launch with a ready form, create separate team workspaces, and keep founder-level visibility from the first day.",
     },
     {
       number: "02",
-      title: "We read between the lines.",
+      title: "Every lead gets read and scored by AI.",
       description:
-        "Inboq scans what they wrote. Urgency. Timeline. Budget signals. Commitment level. A score comes back in under two seconds. Hot, Warm, or Cold.",
+        "Foundhub reads urgency, intent, timeline, and context from every submission and ranks each lead as hot, warm, or cold.",
     },
     {
       number: "03",
-      title: "Your rep gets the right lead first.",
+      title: "The right workspace handles the right work.",
       description:
-        "Hot leads land straight in your CRM with the full context attached. No sorting. No guessing. Your rep picks up the phone already knowing who they're talking to.",
+        "Sales, marketing, support, and ops each work in their own space, while founders still manage billing, teams, and activity from one dashboard.",
     },
   ];
 
@@ -59,9 +59,9 @@ export default function HowItWorks() {
     className="text-[clamp(1.8rem,4vw,3rem)] text-[#1A1714] leading-tight max-w-xl"
     style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
   >
-    Three steps.{" "}
+    One system.{" "}
     <span className="relative inline-block">
-      Zero spreadsheets.
+      Multiple workspaces.
       <span className="absolute left-0 -bottom-1 w-full h-[3px] bg-[#D4622A] rounded-full" />
     </span>
   </h2>

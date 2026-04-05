@@ -75,7 +75,7 @@ export default function HeroPreview() {
         <div className="flex items-center justify-between px-4 py-3 border-b border-[#F0EDE6] bg-[#FAFAF8]">
           <div className="flex items-center gap-2">
             <span className="font-mono text-xs font-semibold text-[#1A1714]">
-              inb<span className="text-[#D4622A]">oq</span>
+              Found<span className="text-[#D4622A]">hub</span>
             </span>
             <span className="font-mono text-[10px] text-[#C4B9A8]">/ leads</span>
           </div>

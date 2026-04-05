@@ -128,10 +128,10 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
       <div className="mb-8 flex items-center justify-between px-2">
         <div>
           <p className="font-mono text-sm font-medium text-[#1A1714] dark:text-[#F5F1EB]">
-            lead<span className="text-[#D4622A]">IQ</span>
+            Found<span className="text-[#D4622A]">hub</span>
           </p>
           <p className="mt-1 text-[10px] uppercase tracking-[0.28em] text-[#9B8E7E] dark:text-[#A99C8B]">
-            Workspace Hub
+            Founder Workspace Hub
           </p>
         </div>
         {onClose && (

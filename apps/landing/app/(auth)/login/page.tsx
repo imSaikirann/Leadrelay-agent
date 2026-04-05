@@ -38,7 +38,7 @@ export default function LoginPage() {
           Welcome back
         </p>
         <h1 className="text-2xl text-[#1A1714] mb-2 text-center" style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}>
-          Sign in to Inboq
+          Sign in to Foundhub
         </h1>
         <p className="text-sm text-[#9B8E7E] mb-6 text-center">
           Manage your leads and sales team.

@@ -75,7 +75,7 @@ export default function page() {
     <div className="min-h-screen bg-[#FAF9F6]">
       {/* Navbar */}
       <div className="border-b border-[#E8E2D9] bg-white px-6 py-3 flex items-center justify-between">
-        <p className="font-mono text-xs text-[#C4B9A8] uppercase tracking-widest">Inboq</p>
+        <p className="font-mono text-xs text-[#C4B9A8] uppercase tracking-widest">Foundhub</p>
         <div className="flex items-center gap-3">
           <p className="text-xs font-mono text-[#9B8E7E]">{session?.user?.name}</p>
           <button onClick={() => signOut({ callbackUrl: "/login" })}

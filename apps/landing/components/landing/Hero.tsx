@@ -20,28 +20,27 @@ export default function Hero() {
           {/* ── Left: copy ── */}
           <div>
             <p className="font-mono text-xs text-[#C4B9A8] uppercase tracking-widest mb-6">
-              AI lead scoring
+              Founder workspace control
             </p>
 
             <h1
               className="text-[clamp(2rem,4.5vw,3.6rem)] leading-[1.08] text-[#1A1714] mb-5"
               style={{ fontFamily: "'Instrument Serif', Georgia, serif" }}
             >
-              Your sales team should only{" "}
+              Run separate team workspaces from{" "}
               <em className="text-[#D4622A] not-italic">
-                talk to people ready to buy.
+                one founder dashboard.
               </em>
             </h1>
 
             <p className="text-base text-[#9B8E7E] leading-relaxed mb-8 max-w-md">
-              Inboq reads every inbound lead, understands their intent, and scores
-              them Hot, Warm, or Cold  in under 2 seconds. Your rep picks up the
-              phone already knowing who's serious.
+              Foundhub gives sales, marketing, support, and ops their own workspace, while founders
+              still manage forms, billing, lead scoring, and team activity from one calm control center.
             </p>
 
             <div className="flex flex-wrap items-center gap-4 mb-8">
               <CustomButton href="/login">
-                Join Now
+                Start Free Trial
               </CustomButton>
             
             </div>
@@ -60,7 +59,7 @@ export default function Hero() {
               </div>
               <p className="text-xs text-[#9B8E7E]">
                 <span className="text-[#1A1714] font-medium">24 founders</span>{" "}
-                already on the waitlist
+                testing multi-workspace lead operations
               </p>
             </div>
           </div>

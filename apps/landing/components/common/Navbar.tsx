@@ -53,7 +53,7 @@ export default function Navbar() {
       }}
     >
       <span className="font-mono text-sm font-medium text-[#1A1714] tracking-tight">
-        inb<span className="text-[#D4622A]">oq</span>
+        Found<span className="text-[#D4622A]">hub</span>
       </span>
 
       <div className="flex items-center gap-6">
